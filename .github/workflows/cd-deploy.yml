@@ -1,0 +1,28 @@
+name: Deploy
+on:
+  push:
+    branches:
+      - deploy
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      VAULT_DATA_DIR: /data/vault
+      VAULT_DOMAIN: ${{ secrets.VAULT_DOMAIN }}
+      VAULT_ADMIN_EMAIL: ${{ secrets.VAULT_ADMIN_EMAIL }}
+      VAULT_ORG_NAME: ${{ secrets.VAULT_ORG_NAME }}
+      VAULT_SMTP_HOST: ${{ secrets.VAULT_SMTP_HOST }}
+      VAULT_SMTP_USERNAME: ${{ secrets.VAULT_SMTP_USERNAME }}
+      VAULT_SMTP_PASSWORD: ${{ secrets.VAULT_SMTP_PASSWORD }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./.github/actions/docker-compose-deploy
+        with:
+          ssh_host: ${{ secrets.DEPLOYER_USERNAME}}@${{ secrets.VAULT_DOMAIN }}
+          ssh_key: ${{ secrets.SSH_KEY }}
+          stack_name: vault
+          pull: true
+          build: true
+

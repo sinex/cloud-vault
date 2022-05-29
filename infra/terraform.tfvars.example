@@ -1,0 +1,47 @@
+# OCI config
+# ----------------------------------------------------------------------------
+oci_tenancy_ocid     = "ocid1.tenancy.oc1.."
+oci_user_ocid        = "ocid1.user.oc1.."
+oci_compartment_ocid = "ocid1.tenancy.oc1.."
+oci_api_fingerprint  = "xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx"
+oci_api_private_key  = <<EOF
+-----BEGIN RSA PRIVATE KEY-----
+...
+-----END RSA PRIVATE KEY-----
+EOF
+
+
+# Cloudflare config
+# ----------------------------------------------------------------------------
+cloudflare_api_token = "..."
+cloudflare_zone      = "example.com"
+
+
+# Host config
+# ----------------------------------------------------------------------------
+
+# Hostname for the instance and DNS A record
+hostname = "vault"
+
+# Username for the user used for app deployment
+deployer_username = "deployer"
+
+# Username for the sudo-enabled admin user
+admin_username = "admin"
+
+# SSH public key used for the 'admin' account on the instance.
+# This account will have sudo privileges without requiring a password
+admin_public_key = "ssh-ed25519 AAAAC..."
+
+# SSH public key used for the 'deployer' account on the instance
+# This account will have the ability to administer docker
+deployer_public_key = "ssh-rsa AAAAB..."
+
+
+# Instance config
+# ----------------------------------------------------------------------------
+region              = "ap-sydney-1"
+instance_shape      = "VM.Standard.E2.1.Micro"
+instance_ocpus      = 1
+instance_memory_gb  = 1
+boot_volume_size_gb = 50

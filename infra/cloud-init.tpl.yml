@@ -1,0 +1,39 @@
+#cloud-config
+
+yum_repos:
+  docker-ce-stable:
+    name: Docker CE Stable - $basearch
+    baseurl: https://download.docker.com/linux/centos/$releasever/$basearch/stable
+    enabled: true
+    gpgcheck: true
+    gpgkey: https://download.docker.com/linux/centos/gpg
+
+packages:
+  - docker-ce
+  - docker-ce-cli
+
+package_update: true
+package_upgrade: true
+
+runcmd:
+  - dnf remove cockpit --assumeyes
+  - sed -i 's/\#\?MaxSessions .\+/MaxSessions 500/' /etc/ssh/sshd_config
+  - systemctl restart sshd
+  - systemctl daemon-reload
+  - systemctl enable --now docker
+  - echo 'Provisioned by Terraform.' >> /etc/motd
+
+users:
+  - default
+  - name: ${admin_username}
+    groups: adm, systemd-journal, docker
+    lock_passwd: true
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    ssh_authorized_keys:
+      - ${admin_public_key}
+  - name: ${deployer_username}
+    groups: docker
+    lock_passwd: true
+    ssh_authorized_keys:
+      - ${deployer_public_key}
+      - ${admin_public_key}

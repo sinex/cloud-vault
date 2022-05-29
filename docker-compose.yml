@@ -1,0 +1,44 @@
+version: '3'
+
+volumes:
+  caddy_data:
+  caddy_config:
+
+services:
+
+  vaultwarden:
+    image: vaultwarden/server:latest
+    restart: unless-stopped
+    environment:
+      - ADMIN_TOKEN=${VAULT_ADMIN_TOKEN}
+      - WEBSOCKET_ENABLED=true
+      - SIGNUPS_ALLOWED=false
+      - SHOW_PASSWORD_HINT=false
+      - INVITATIONS_ALLOWED=true
+      - INVITATION_ORG_NAME=${VAULT_ORG_NAME:-Vaultwarden}
+      - DOMAIN=https://${VAULT_DOMAIN:?}
+      - SMTP_HOST=${VAULT_SMTP_HOST}
+      - SMTP_FROM=${VAULT_ADMIN_EMAIL}
+      - SMTP_FROM_NAME=${VAULT_ORG_NAME}
+      - SMTP_SECURITY=${VAULT_SMTP_SECURITY:-starttls}
+      - SMTP_PORT=${VAULT_SMTP_PORT:-587}
+      - SMTP_USERNAME=${VAULT_SMTP_USERNAME}
+      - SMTP_PASSWORD=${VAULT_SMTP_PASSWORD}
+    volumes:
+      - ${VAULT_DATA_DIR:-/data}/vaultwarden:/data
+
+  caddy:
+    build: caddy/
+    restart: unless-stopped
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - caddy_config:/config
+      - caddy_data:/data
+    environment:
+      - PROXY_HOST=vaultwarden
+      - LOG_FILE=/data/access.log
+      - DOMAIN=https://${VAULT_DOMAIN:?}
+      - EMAIL=${VAULT_ADMIN_EMAIL:?}
+

@@ -1,0 +1,53 @@
+name: docker-compose deployment
+author: Joshua Stover <josh@jstover.net>
+description: 'Deploy a docker-compose project to a remote server'
+inputs:
+
+  ssh_host:
+    description: Remote docker host (e.g. user@hostname)
+    required: true
+
+  ssh_key:
+    description: Private key for connecting to the remote host
+    required: true
+
+  ssh_port:
+    description: SSH port for the remote host
+    required: false
+
+  stack_file:
+    description: Path to the docker-compose stack file
+    required: false
+
+  stack_name:
+    description: Name to use for the compose stack
+    required: false
+
+  pull:
+    description: Run `docker pull` before deploying stack
+    required: false
+
+  force_recreate:
+    description: Run docker-compose with --force-recreate flag
+    required: false
+
+  build:
+    description: Run docker-compose with --build flag
+    required: false
+
+  compose_args:
+    description: Extra arguments to pass to `docker-compose`
+    required: false
+
+  up_args:
+    description: Extra arguments to pass to `docker-compose up`
+    required: false
+
+runs:
+  using: docker
+  image: Dockerfile
+
+branding:
+  icon: layers
+  color: gray-dark
+
