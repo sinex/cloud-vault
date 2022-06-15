@@ -10,7 +10,7 @@ services:
     image: vaultwarden/server:latest
     restart: unless-stopped
     environment:
-      - ADMIN_TOKEN=${VAULT_ADMIN_TOKEN}
+      - ADMIN_TOKEN=${VAULT_ADMIN_TOKEN:-}
       - WEBSOCKET_ENABLED=true
       - SIGNUPS_ALLOWED=false
       - SHOW_PASSWORD_HINT=false
@@ -41,4 +41,20 @@ services:
       - LOG_FILE=/data/access.log
       - DOMAIN=https://${VAULT_DOMAIN:?}
       - EMAIL=${VAULT_ADMIN_EMAIL:?}
+
+  borg:
+    build:
+      context: borg/
+      args:
+        BORG_SSH_USER: ${BORG_SSH_USER:?}
+        BORG_SSH_HOST: ${BORG_SSH_HOST:?}
+        BORG_SSH_PORT: ${BORG_SSH_PORT:-22}
+        BORG_SSH_KEY: ${BORG_SSH_KEY:?}
+        BORG_REPO_PATH: ${BORG_REPO_PATH:?}
+        BORG_REPO_KEYFILE: ${BORG_REPO_KEYFILE:?}
+        BORG_REPO_PASSPHRASE: ${BORG_REPO_PASSPHRASE:?}
+    restart: unless-stopped
+    volumes:
+      - ${VAULT_DATA_DIR:-/data}/vaultwarden:/data
+
 

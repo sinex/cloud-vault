@@ -11,6 +11,7 @@ yum_repos:
 packages:
   - docker-ce
   - docker-ce-cli
+  - borgbackup
 
 package_update: true
 package_upgrade: true
