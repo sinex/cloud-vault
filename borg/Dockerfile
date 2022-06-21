@@ -1,6 +1,6 @@
 FROM alpine:3.16
 
-RUN apk --update --no-cache add openssh-client borgbackup
+RUN apk --update --no-cache add 'borgbackup~=1.2.0' 'openssh-client~=9.0'
 
 COPY crontab /etc/crontabs/root
 COPY entrypoint.sh /
