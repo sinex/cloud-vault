@@ -1,2 +1,2 @@
-0 */6 * * *     borg create --stats --compression lz4 '::{now}' /data
-0 1 * * Sun     borg prune -v --keep-daily=7 --keep-weekly=4 --keep-monthly=6 --keep-yearly=2 --list && borg compact
+0 */6 * * *   borg create --stats --compression lz4 '::{now}' /data
+0 1 * * 0     borg prune -v --keep-daily=7 --keep-weekly=4 --keep-monthly=6 --keep-yearly=2 --list && borg compact

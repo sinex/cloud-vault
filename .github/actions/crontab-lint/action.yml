@@ -1,0 +1,17 @@
+name: crontab linter
+author: Joshua Stover <josh@jstover.net>
+description: 'Lint a crontab file using user/cron_linter'
+inputs:
+
+  crontab:
+    description: Path to the crontab file to lint
+    required: true
+
+runs:
+  using: docker
+  image: Dockerfile
+
+branding:
+  icon: layers
+  color: gray-dark
+

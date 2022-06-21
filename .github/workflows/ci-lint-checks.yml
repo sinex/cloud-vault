@@ -7,33 +7,40 @@ jobs:
   terraform-lint:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@main
-
-    - name: Lint Terraform
-      uses: actionshub/terraform-lint@main
+      - uses: actions/checkout@v3
+      - uses: actionshub/terraform-lint@main
 
 
   docker-lint:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        image: [caddy, borg]
-
+        image: [caddy, borg, .github/actions/crontab-lint, .github/actions/docker-compose-deploy]
     steps:
-    - name: Checkout
-      uses: actions/checkout@master
+      - uses: actions/checkout@v3
+      - uses: luke142367/Docker-Lint-Action@v1.0.0
+        with:
+          target: ${{ matrix.image }}/Dockerfile
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: always()
+      - uses: hadolint/hadolint-action@v2.0.0
+        with:
+          dockerfile: ${{ matrix.image }}/Dockerfile
+        if: always()
 
-    - name: dockerfilelint
-      uses: luke142367/Docker-Lint-Action@v1.0.0
-      with:
-        target: ${{ matrix.image }}/Dockerfile
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      if: always()
 
-    - name: Hadolint
-      uses: hadolint/hadolint-action@v2.0.0
-      with:
-        dockerfile: ${{ matrix.image }}/Dockerfile
-      if: always()
+  shell-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ludeeus/action-shellcheck@master
+
+
+  crontab-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/crontab-lint
+        with:
+          crontab: borg/crontab
