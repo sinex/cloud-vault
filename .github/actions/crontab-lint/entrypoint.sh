@@ -1,8 +1,8 @@
 #!/bin/sh
 
-if [ -z "$CRONTAB" ]; then
+if [ -z "$INPUT_CRONTAB" ]; then
     echo "Parameter required: crontab"
     exit 1
 fi
 
-bash /cron_linter.sh "$CRONTAB"
+bash /cron_linter.sh "$INPUT_CRONTAB"
