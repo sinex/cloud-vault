@@ -18,7 +18,7 @@ jobs:
         image: [caddy, borg, .github/actions/crontab-lint, .github/actions/docker-compose-deploy]
     steps:
       - uses: actions/checkout@v3
-      - uses: luke142367/Docker-Lint-Action@v1.0.0
+      - uses: luke142367/Docker-Lint-Action@v1.1.1
         with:
           target: ${{ matrix.image }}/Dockerfile
         env:
