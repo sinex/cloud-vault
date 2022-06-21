@@ -17,7 +17,7 @@ jobs:
       VAULT_SMTP_PASSWORD: ${{ secrets.VAULT_SMTP_PASSWORD }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: ./.github/actions/docker-compose-deploy
         with:
           ssh_host: ${{ secrets.DEPLOYER_USERNAME}}@${{ secrets.VAULT_DOMAIN }}
