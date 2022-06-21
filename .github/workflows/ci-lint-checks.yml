@@ -24,7 +24,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@master
 
-    - name: dockerfilelint (${{ matrix.image }})
+    - name: dockerfilelint
       uses: luke142367/Docker-Lint-Action@v1.0.0
       with:
         target: ${{ matrix.image }}/Dockerfile
@@ -32,7 +32,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       if: always()
 
-    - name: Hadolint (${{ matrix.image }})
+    - name: Hadolint
       uses: hadolint/hadolint-action@v2.0.0
       with:
         dockerfile: ${{ matrix.image }}/Dockerfile
