@@ -1,13 +1,13 @@
 .ONESHELL:
 .SHELLFLAGS= -ec
 
-CWD        := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-TF_OUTPUTS := $(CWD)/infra/.terraform/.terraform_outputs.json
+CWD          := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
+TF_OUTPUTS   := $(CWD)/infra/.terraform/.terraform_outputs.json
 
-.PHONY: infra-deploy infra-destroy _check_infra_deployed app-deploy app-destroy
+tf_output     = $(shell jq .$(1).value $(TF_OUTPUTS))
+random_token  = $(shell openssl rand -base64 48)
 
-tf_output 		= $(shell jq .$(1).value $(TF_OUTPUTS))
-random_token	= $(shell openssl rand -base64 48)
+.PHONY: infra-create infra-destroy app-configure app-deploy app-destroy shell
 
 
 infra-create:
@@ -48,7 +48,6 @@ app-configure: $(TF_OUTPUTS)
 	echo "Then press enter to restart the instance."
 	read
 	while ! docker-compose -H "ssh://$${USER}@$${HOST}" -p vault down; do echo 'Failed to bring down all services, retrying ...'; done
-
 
 
 app-deploy: $(TF_OUTPUTS)
