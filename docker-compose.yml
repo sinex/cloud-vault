@@ -3,6 +3,7 @@ version: '3'
 volumes:
   caddy_data:
   caddy_config:
+  borg_cache:
 
 services:
 
@@ -43,18 +44,15 @@ services:
       - EMAIL=${VAULT_ADMIN_EMAIL:?}
 
   borg:
-    build:
-      context: borg/
-      args:
-        BORG_SSH_USER: ${BORG_SSH_USER:?}
-        BORG_SSH_HOST: ${BORG_SSH_HOST:?}
-        BORG_SSH_PORT: ${BORG_SSH_PORT:-22}
-        BORG_SSH_KEY: ${BORG_SSH_KEY:?}
-        BORG_REPO_PATH: ${BORG_REPO_PATH:?}
-        BORG_REPO_KEYFILE: ${BORG_REPO_KEYFILE:?}
-        BORG_REPO_PASSPHRASE: ${BORG_REPO_PASSPHRASE:?}
+    build: borg/
     restart: unless-stopped
+    environment:
+      BORG_REPO: ${BORG_REPO:?}
+      BORG_PASSPHRASE: ${BORG_PASSPHRASE:?}
+      BORG_KEYFILE: ${BORG_KEYFILE:?}
+      BORG_SSH_PRIVATE_KEY: ${BORG_SSH_PRIVATE_KEY:?}
     volumes:
+      - borg_cache:/borg_cache
       - ${VAULT_DATA_DIR:-/data}/vaultwarden:/data
 
 
