@@ -16,7 +16,7 @@ Features:
 ## Configuration
 
 Terraform setup
-```dotenv
+```shell
 # These variables need to be set in the environment running terraform
 # Alternatively, configure the `cloud` block in main.tf
 
@@ -82,7 +82,7 @@ boot_volume_size_gb = 50
 ```
 
 Application configuration
-```dotenv
+```shell
 # .env
 
 # Vaultwarden Settings
@@ -129,7 +129,7 @@ BORG_SSH_PRIVATE_KEY=
 ## Usage
 
 ```shell
-# Provision infrastructure
+# Provision OCI resources
 make infra-create
 
 # Start Vaultwarden
@@ -144,6 +144,6 @@ make shell
 # Stop Vaultwarden
 make app-destroy
 
-# Destroy infrastructure resources
+# Destroy OCI resources
 make infra-destroy
 ```
