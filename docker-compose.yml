@@ -1,4 +1,4 @@
-version: '3'
+version: '3.9'
 
 volumes:
   caddy_data:
@@ -44,15 +44,27 @@ services:
       - EMAIL=${VAULT_ADMIN_EMAIL:?}
 
   borg:
-    build: borg/
+    image: ghcr.io/${GITHUB_USERNAME:?}/vault_borg:latest
     restart: unless-stopped
-    environment:
-      BORG_REPO: ${BORG_REPO:?}
-      BORG_PASSPHRASE: ${BORG_PASSPHRASE:?}
-      BORG_KEYFILE: ${BORG_KEYFILE:?}
-      BORG_SSH_PRIVATE_KEY: ${BORG_SSH_PRIVATE_KEY:?}
     volumes:
       - borg_cache:/borg_cache
       - ${VAULT_DATA_DIR:-/data}/vaultwarden:/data
+    secrets:
+      - BORG_REPO
+      - BORG_KEYFILE_BASE64
+      - BORG_SSH_PRIVATE_KEY_BASE64
+      - BORG_PASSPHRASE
 
 
+secrets:
+  BORG_REPO:
+    external: true
+
+  BORG_PASSPHRASE:
+    external: true
+
+  BORG_KEYFILE_BASE64:
+    external: true
+
+  BORG_SSH_PRIVATE_KEY_BASE64:
+    external: true
