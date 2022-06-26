@@ -2,23 +2,34 @@
 .SHELLFLAGS= -ec
 
 CWD          := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-TF_OUTPUTS   := $(CWD)/infra/.terraform/.terraform_outputs.json
+TF_OUTPUTS   := $(CWD)/infra/terraform/.terraform/outputs.json
 
 tf_output     = $(shell jq .$(1).value $(TF_OUTPUTS))
 random_token  = $(shell openssl rand -base64 48)
 
-.PHONY: infra-create infra-destroy app-configure app-deploy app-destroy shell
+.PHONY: infra-create infra-configure infra-up infra-destroy app-configure app-deploy app-destroy shell
 
 
 infra-create:
-	cd infra
+	cd $(CWD)/infra/terraform
 	terraform init
 	terraform apply
 	terraform output -json > $(TF_OUTPUTS)
 
 
+infra-configure: $(TF_OUTPUTS)
+	cd $(CWD)/infra/ansible
+	ansible-galaxy install -r requirements.yml
+	ansible-playbook -vv configure.yml --extra-vars="$$(jq 'with_entries(.value |= .value)' $(TF_OUTPUTS))"
+
+
+infra-up:
+	$(MAKE) infra-create
+	$(MAKE) infra-configure
+
+
 infra-destroy:
-	cd infra
+	cd infra/terraform
 	terraform init
 	terraform destroy
 	rm -f $(TF_OUTPUTS)
@@ -26,7 +37,7 @@ infra-destroy:
 
 $(TF_OUTPUTS):
 	@echo "Reading deployment variables ..."
-	( cd infra && terraform output -json ) > $(TF_OUTPUTS)
+	( cd infra/terraform && terraform output -json ) > $(TF_OUTPUTS)
 	if [ "$$(cat "$(TF_OUTPUTS)")" = "{}" ]; then
 		echo "Infrastructure does not seem to be deployed. Run 'make infra-deploy' before deploying the application" >&2
 		exit 1

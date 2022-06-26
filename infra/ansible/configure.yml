@@ -1,0 +1,77 @@
+- name: Configure
+  hosts: vault
+  become: yes
+  tasks:
+    - name: OS-specific configuration
+      include_tasks: "configure.{{ ansible_facts['os_family'] | lower }}.yml"
+
+    - name: Remove unused packages
+      package:
+        state: absent
+        name:
+          - cockpit
+
+    - name: Upgrade packages
+      package:
+        name: '*'
+        state: latest
+
+    - name: Install required packages
+      package:
+        state: present
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - python3-docker
+
+    - name: Enable docker service
+      systemd:
+        daemon_reload: yes
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Initialise docker swarm
+      community.docker.docker_swarm:
+        state: present
+
+    - name: Configure Docker secrets
+      community.docker.docker_secret:
+        name: "{{ item }}"
+        data: "{{ lookup('vars', '{{ item }}') }}"
+        state: present
+      loop:
+        - BORG_REPO
+        - BORG_PASSPHRASE
+        - BORG_KEYFILE_BASE64
+        - BORG_SSH_PRIVATE_KEY_BASE64
+
+    - name: Configure SSH server daemon
+      tags:
+        - task_debug
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: "^(# *)?{{ item.key }} \\w+$"
+        line: "{{ item.key }} {{ item.value }}"
+        state: present
+      loop:
+        - {key: "PermitRootLogin", value: "no"}
+        - {key: "MaxSessions", value: "500"}
+        - {key: "PasswordAuthentication", value: "no"}
+        - {key: "X11Forwarding", value: "no"}
+        - {key: "AllowGroups", value: "ssh_users"}
+      notify:
+        - Restart sshd
+
+    - name: Update MOTD
+      lineinfile:
+        path: /etc/motd
+        line: "Configured by ansible."
+        state: present
+
+
+  handlers:
+    - name: Restart sshd
+      systemd:
+        state: restarted
+        name: sshd
