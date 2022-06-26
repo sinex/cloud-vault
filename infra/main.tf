@@ -54,5 +54,5 @@ output "fqdn" {
 }
 
 output "image_ocid" {
-  value = lookup(data.oci_core_images.test_images.images[0], "id")
+  value = lookup(data.oci_core_images.oracle_linux.images[0], "id")
 }
