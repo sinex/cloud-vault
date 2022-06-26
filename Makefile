@@ -4,11 +4,24 @@
 CWD          := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 TF_OUTPUTS   := $(CWD)/infra/terraform/.terraform/outputs.json
 
+ifneq ($(CONTAINER_REGISTRY),)
+CONTAINER_REGISTRY := $(CONTAINER_REGISTRY)/
+endif
+
 tf_output     = $(shell jq .$(1).value $(TF_OUTPUTS))
 random_token  = $(shell openssl rand -base64 48)
 
 .PHONY: infra-create infra-configure infra-up infra-destroy app-configure app-deploy app-destroy shell
 
+
+build-images: $(addprefix $(CONTAINER_REGISTRY),vault_borg vault_caddy)
+
+push-images:
+	docker push $(CONTAINER_REGISTRY)vault_borg
+	docker push $(CONTAINER_REGISTRY)vault_caddy
+
+$(CONTAINER_REGISTRY)vault_% : %/
+	docker build -t $(CONTAINER_REGISTRY)$@:latest $<
 
 infra-create:
 	cd $(CWD)/infra/terraform
