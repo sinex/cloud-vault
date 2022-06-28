@@ -35,7 +35,7 @@
       community.docker.docker_swarm:
         state: present
 
-    - name: Configure Docker secrets
+    - name: Configure docker secrets (vars)
       community.docker.docker_secret:
         name: "{{ item }}"
         data: "{{ lookup('vars', '{{ item }}') }}"
@@ -43,12 +43,20 @@
       loop:
         - BORG_REPO
         - BORG_PASSPHRASE
-        - BORG_KEYFILE_BASE64
         - BORG_SSH_PRIVATE_KEY_BASE64
+        - VAULTWARDEN_ENV
+
+    - name: Configure docker secrets (file)
+      community.docker.docker_secret:
+        name: "{{ item.name }}"
+        data: "{{ lookup('file', '{{ item.file }}') | b64encode }}"
+        data_is_b64: true
+        state: present
+      loop:
+        - { name: "VAULTWARDEN_SECRET_ENV", file: "../../vaultwarden.env" }
+
 
     - name: Configure SSH server daemon
-      tags:
-        - task_debug
       lineinfile:
         path: /etc/ssh/sshd_config
         regexp: "^(# *)?{{ item.key }} \\w+$"

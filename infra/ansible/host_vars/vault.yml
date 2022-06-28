@@ -2,6 +2,6 @@ BORG_REPO: "{{ lookup('env', 'BORG_REPO') }}"
 
 BORG_PASSPHRASE: "{{ lookup('env', 'BORG_PASSPHRASE') }}"
 
-BORG_KEYFILE_BASE64: "{{ lookup('env', 'BORG_KEYFILE_BASE64') }}"
-
 BORG_SSH_PRIVATE_KEY_BASE64: "{{ lookup('env', 'BORG_SSH_PRIVATE_KEY_BASE64') }}"
+
+VAULTWARDEN_ENV: "{{ lookup('file', '../../vaultwarden.env') }}"
