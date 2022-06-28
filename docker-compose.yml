@@ -45,13 +45,11 @@ services:
 
   borg:
     image: ${CONTAINER_REGISTRY:?}/vault_borg:latest
-    restart: unless-stopped
     volumes:
       - borg_cache:/borg_cache
-      - ${VAULT_DATA_DIR:-/data}/vaultwarden:/data
+      - vaultwarden_data:/data
     secrets:
       - BORG_REPO
-      - BORG_KEYFILE_BASE64
       - BORG_SSH_PRIVATE_KEY_BASE64
       - BORG_PASSPHRASE
 
