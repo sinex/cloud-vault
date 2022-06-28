@@ -21,7 +21,7 @@ push-images:
 	docker push $(CONTAINER_REGISTRY)vault_caddy
 
 $(CONTAINER_REGISTRY)vault_% : %/
-	docker build -t $(CONTAINER_REGISTRY)$@:latest $<
+	docker build -t $@:latest $*/
 
 infra-create:
 	cd $(CWD)/infra/terraform
