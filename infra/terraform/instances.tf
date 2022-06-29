@@ -20,7 +20,7 @@ resource "oci_core_instance" "instance0" {
 
   source_details {
     source_type             = "image"
-    source_id               = lookup(data.oci_core_images.test_images.images[0], "id")
+    source_id               = lookup(data.oci_core_images.oracle_linux.images[0], "id")
     boot_volume_size_in_gbs = var.boot_volume_size_gb
   }
 
@@ -33,7 +33,7 @@ resource "oci_core_instance" "instance0" {
 }
 
 # See https://docs.oracle.com/iaas/images/
-data "oci_core_images" "test_images" {
+data "oci_core_images" "oracle_linux" {
   compartment_id           = var.oci_compartment_ocid
   operating_system         = "Oracle Linux"
   operating_system_version = "8"

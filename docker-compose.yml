@@ -1,6 +1,7 @@
-version: '3'
+version: '3.9'
 
 volumes:
+  vaultwarden_data:
   caddy_data:
   caddy_config:
   borg_cache:
@@ -9,28 +10,26 @@ services:
 
   vaultwarden:
     image: vaultwarden/server:latest
-    restart: unless-stopped
     environment:
-      - ADMIN_TOKEN=${VAULT_ADMIN_TOKEN:-}
       - WEBSOCKET_ENABLED=true
       - SIGNUPS_ALLOWED=false
       - SHOW_PASSWORD_HINT=false
       - INVITATIONS_ALLOWED=true
       - INVITATION_ORG_NAME=${VAULT_ORG_NAME:-Vaultwarden}
       - DOMAIN=https://${VAULT_DOMAIN:?}
-      - SMTP_HOST=${VAULT_SMTP_HOST}
       - SMTP_FROM=${VAULT_ADMIN_EMAIL}
       - SMTP_FROM_NAME=${VAULT_ORG_NAME}
-      - SMTP_SECURITY=${VAULT_SMTP_SECURITY:-starttls}
-      - SMTP_PORT=${VAULT_SMTP_PORT:-587}
-      - SMTP_USERNAME=${VAULT_SMTP_USERNAME}
-      - SMTP_PASSWORD=${VAULT_SMTP_PASSWORD}
+      # Usually runs without an admin token, but can be set temporarily by `make app-configure`
+      - ADMIN_TOKEN=${VAULT_ADMIN_TOKEN:-}
     volumes:
-      - ${VAULT_DATA_DIR:-/data}/vaultwarden:/data
+      - vaultwarden_data:/data
+    secrets:
+      - source: VAULTWARDEN_ENV
+        target: /.env
+        mode: 0400
 
   caddy:
-    build: caddy/
-    restart: unless-stopped
+    image: ${CONTAINER_REGISTRY:?}/vault_caddy:latest
     ports:
       - 80:80
       - 443:443
@@ -44,15 +43,25 @@ services:
       - EMAIL=${VAULT_ADMIN_EMAIL:?}
 
   borg:
-    build: borg/
-    restart: unless-stopped
-    environment:
-      BORG_REPO: ${BORG_REPO:?}
-      BORG_PASSPHRASE: ${BORG_PASSPHRASE:?}
-      BORG_KEYFILE: ${BORG_KEYFILE:?}
-      BORG_SSH_PRIVATE_KEY: ${BORG_SSH_PRIVATE_KEY:?}
+    image: ${CONTAINER_REGISTRY:?}/vault_borg:latest
     volumes:
       - borg_cache:/borg_cache
-      - ${VAULT_DATA_DIR:-/data}/vaultwarden:/data
+      - vaultwarden_data:/data
+    secrets:
+      - BORG_REPO
+      - BORG_SSH_PRIVATE_KEY_BASE64
+      - BORG_PASSPHRASE
 
 
+secrets:
+  BORG_REPO:
+    external: true
+
+  BORG_PASSPHRASE:
+    external: true
+
+  BORG_SSH_PRIVATE_KEY_BASE64:
+    external: true
+
+  VAULTWARDEN_ENV:
+    external: true
