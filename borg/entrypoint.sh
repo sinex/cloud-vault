@@ -41,9 +41,9 @@ unset BORG_PASSPHRASE
 
 # Create SSH private key
 if [ ! -d ~/.ssh/ ]; then mkdir -m 0600 ~/.ssh; fi
-echo "$BORG_SSH_PRIVATE_KEY_BASE64" | base64 -d > ~/.ssh/borg-privatekey
+echo "$BORG_SSH_PRIVATE_KEY" | base64 -d > ~/.ssh/borg-privatekey
 chmod 400 ~/.ssh/borg-privatekey
-unset BORG_SSH_PRIVATE_KEY_BASE64
+unset BORG_SSH_PRIVATE_KEY
 BORG_RSH="ssh -i $HOME/.ssh/borg-privatekey"
 
 # Extract borg host/port from BORG_REPO
