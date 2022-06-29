@@ -43,7 +43,7 @@
       loop:
         - BORG_REPO
         - BORG_PASSPHRASE
-        - BORG_SSH_PRIVATE_KEY_BASE64
+        - BORG_SSH_PRIVATE_KEY
         - VAULTWARDEN_ENV
 
     - name: Configure docker secrets (file)
