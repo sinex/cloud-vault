@@ -1,26 +1,45 @@
 .ONESHELL:
 .SHELLFLAGS= -ec
 
+STACK_NAME   := vault
+
 CWD          := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 TF_OUTPUTS   := $(CWD)/infra/terraform/.terraform/outputs.json
 
+CONTAINER_REGISTRY_PREFIX :=
 ifneq ($(CONTAINER_REGISTRY),)
-CONTAINER_REGISTRY := $(CONTAINER_REGISTRY)/
+CONTAINER_REGISTRY_PREFIX := $(CONTAINER_REGISTRY)/
 endif
 
 tf_output     = $(shell jq .$(1).value $(TF_OUTPUTS))
 random_token  = $(shell openssl rand -base64 48)
 
-.PHONY: infra-create infra-configure infra-up infra-destroy app-configure app-deploy app-destroy shell
+.PHONY: default build-images push-images infra-create infra-configure infra-destroy app-configure app-deploy app-destroy host-shell borg-shell vaultwarden-shell
 
 
-build-images: $(addprefix $(CONTAINER_REGISTRY),vault_borg vault_caddy)
+default:
+	@echo "Makefile Targets:"
+	echo ""
+	echo "build-images              │ (docker)    Build images"
+	echo "push-images               │ (docker)    Push images to container registry"
+	echo "infra-create              │ (terraform) Create the infrastructure resources"
+	echo "infra-configure           │ (ansible)   Configure the existing infrastructure"
+	echo "infra-destroy             │ (terraform) Remove the infrastructure resources"
+	echo "app-configure             │ (docker)    Start vaultwarden with a random, temporary ADMIN_TOKEN"
+	echo "app-deploy                │ (docker)    Deploy the vaultwarden application stack"
+	echo "app-destroy               │ (docker)    Stop the vaultwarden application stack"
+	echo "host-shell                │ (ssh)       Start a terminal on the docker host instance"
+	echo "borg-shell                │ (docker)    Start a terminal in the borg container"
+	echo "vaultwarden-shell         │ (docker)    Start a terminal in the vaultwarden container"
+
+
+build-images: $(addprefix $(CONTAINER_REGISTRY_PREFIX),vault_borg vault_caddy)
 
 push-images:
-	docker push $(CONTAINER_REGISTRY)vault_borg
-	docker push $(CONTAINER_REGISTRY)vault_caddy
+	docker push $(CONTAINER_REGISTRY_PREFIX)vault_borg
+	docker push $(CONTAINER_REGISTRY_PREFIX)vault_caddy
 
-$(CONTAINER_REGISTRY)vault_% : %/
+$(CONTAINER_REGISTRY_PREFIX)vault_% : %/
 	docker build -t $@:latest $*/
 
 infra-create:
@@ -34,11 +53,6 @@ infra-configure: $(TF_OUTPUTS)
 	cd $(CWD)/infra/ansible
 	ansible-galaxy install -r requirements.yml
 	ansible-playbook -vv configure.yml --extra-vars="$$(jq 'with_entries(.value |= .value)' $(TF_OUTPUTS))"
-
-
-infra-up:
-	$(MAKE) infra-create
-	$(MAKE) infra-configure
 
 
 infra-destroy:
@@ -59,19 +73,16 @@ $(TF_OUTPUTS):
 
 app-configure: $(TF_OUTPUTS)
 	@export VAULT_ADMIN_TOKEN="$(call random_token)"
-	set -x
-	HOST=$(call tf_output,instance_ip)
-	USER=$(call tf_output,deployer_username)
-	DOCKER_HOST="$${DOCKER_HOST}"
-	while ! docker-compose -H "ssh://$${USER}@$${HOST}" -p vault down; do echo 'Failed to bring down all services, retrying ...'; done
-	docker-compose -H "ssh://$${USER}@$${HOST}" -p vault up -d
-	set +x
+	$(MAKE) --no-print-directory app-destroy
+	$(MAKE) --no-print-directory app-deploy
 	echo "Connect to the Vaultwarden admin panel using the auth token:"
 	echo "  $${VAULT_ADMIN_TOKEN}"
 	echo ""
 	echo "Then press enter to restart the instance."
 	read
-	while ! docker-compose -H "ssh://$${USER}@$${HOST}" -p vault down; do echo 'Failed to bring down all services, retrying ...'; done
+	unset VAULT_ADMIN_TOKEN
+	$(MAKE) --no-print-directory app-destroy
+	$(MAKE) --no-print-directory app-deploy
 
 
 app-deploy: $(TF_OUTPUTS)
@@ -79,18 +90,50 @@ app-deploy: $(TF_OUTPUTS)
 	set -x
 	HOST=$(call tf_output,instance_ip)
 	USER=$(call tf_output,deployer_username)
-	docker-compose -H "ssh://$${USER}@$${HOST}" -p vault up -d
+	docker -H "ssh://$${USER}@$${HOST}" stack deploy --compose-file docker-compose.yml --with-registry-auth $(STACK_NAME)
 
 
 app-destroy: $(TF_OUTPUTS)
 	@set -x
 	HOST=$(call tf_output,instance_ip)
 	USER=$(call tf_output,deployer_username)
-	while ! docker-compose -H "ssh://$${USER}@$${HOST}" -p vault down; do echo 'Failed to bring down all services, retrying ...'; done
+	docker -H "ssh://$${USER}@$${HOST}" stack rm $(STACK_NAME)
+	set +x
+	printf '%s' 'Waiting for containers to be removed ...'
+	until [ -z "$$(docker stack ps $(STACK_NAME) -q 2>/dev/null)" ]; do printf '%s' '.'; sleep 1; done
+	printf '\n'
 
 
-shell: $(TF_OUTPUTS)
+host-shell: $(TF_OUTPUTS)
 	@set -x
 	HOST=$(call tf_output,instance_ip)
 	USER=$(call tf_output,admin_username)
 	ssh "$${USER}@$${HOST}"
+
+
+borg-shell: $(TF_OUTPUTS)
+	@set -x
+	HOST=$(call tf_output,instance_ip)
+	USER=$(call tf_output,deployer_username)
+	DOCKER_HOST="ssh://$${USER}@$${HOST}"
+	CONTAINER_ID=$$(docker ps --latest --filter name=$(STACK_NAME)_borg --format '{{ .ID }}')
+	if [ -n "$${CONTAINER_ID}" ]; then
+		docker exec -it "$${CONTAINER_ID}" /entrypoint.sh sh
+	else
+		set +x
+		echo "borg container is not running"
+	fi
+
+
+vaultwarden-shell: $(TF_OUTPUTS)
+	@set -x
+	HOST=$(call tf_output,instance_ip)
+	USER=$(call tf_output,deployer_username)
+	DOCKER_HOST="ssh://$${USER}@$${HOST}"
+	CONTAINER_ID=$$(docker ps --latest --filter name=$(STACK_NAME)_vaultwarden --format '{{ .ID }}')
+	if [ -n "$${CONTAINER_ID}" ]; then
+		docker exec -it "$${CONTAINER_ID}" bash
+	else
+		set +x
+		echo "vaultwarden container is not running"
+	fi

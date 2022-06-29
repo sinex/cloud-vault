@@ -22,7 +22,7 @@ services:
       # Usually runs without an admin token, but can be set temporarily by `make app-configure`
       - ADMIN_TOKEN=${VAULT_ADMIN_TOKEN:-}
     volumes:
-      vaultwarden_data:/data
+      - vaultwarden_data:/data
     secrets:
       - source: VAULTWARDEN_ENV
         target: /.env
