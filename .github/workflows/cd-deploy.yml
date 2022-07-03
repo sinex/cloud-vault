@@ -5,6 +5,20 @@ on:
       - deploy
 
 jobs:
+
+  cleanup-images:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        image: [caddy, borg]
+    steps:
+      - uses: camargo/delete-untagged-action@v1
+        with:
+          github-token: ${{ secrets.DELETE_PACKAGES_TOKEN }}
+          repository: ghcr.io/sinex
+          package-name: vault_${{ matrix.image }}
+          personal-account: true
+
   deploy:
     runs-on: ubuntu-latest
     env:
