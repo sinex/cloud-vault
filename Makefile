@@ -124,6 +124,20 @@ borg-shell: $(TF_OUTPUTS)
 		echo "borg container is not running"
 	fi
 
+borg-backup: $(TF_OUTPUTS)
+	@set -x
+	HOST=$(call tf_output,instance_ip)
+	USER=$(call tf_output,deployer_username)
+	DOCKER_HOST="ssh://$${USER}@$${HOST}"
+	CONTAINER_ID=$$(docker ps --latest --filter name=$(STACK_NAME)_borg --format '{{ .ID }}')
+	if [ -n "$${CONTAINER_ID}" ]; then
+		docker exec -it "$${CONTAINER_ID}" /entrypoint.sh borg create --stats --compression lz4 '::{now}' /data
+	else
+		set +x
+		echo "borg container is not running"
+	fi
+
+
 
 vaultwarden-shell: $(TF_OUTPUTS)
 	@set -x
