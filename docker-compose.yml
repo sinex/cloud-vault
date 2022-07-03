@@ -49,7 +49,7 @@ services:
       - vaultwarden_data:/data
     secrets:
       - BORG_REPO
-      - BORG_SSH_PRIVATE_KEY_BASE64
+      - BORG_SSH_PRIVATE_KEY
       - BORG_PASSPHRASE
 
 
@@ -60,7 +60,7 @@ secrets:
   BORG_PASSPHRASE:
     external: true
 
-  BORG_SSH_PRIVATE_KEY_BASE64:
+  BORG_SSH_PRIVATE_KEY:
     external: true
 
   VAULTWARDEN_ENV:
