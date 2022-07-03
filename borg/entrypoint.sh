@@ -22,11 +22,11 @@ if [ -z "$BORG_PASSPHRASE" ]; then
 fi
 
 # SSH private key for accessing borg remote
-if [ -f /run/secrets/BORG_SSH_PRIVATE_KEY_BASE64 ]; then
-    BORG_SSH_PRIVATE_KEY_BASE64=$(cat /run/secrets/BORG_SSH_PRIVATE_KEY_BASE64)
+if [ -f /run/secrets/BORG_SSH_PRIVATE_KEY ]; then
+    BORG_SSH_PRIVATE_KEY=$(cat /run/secrets/BORG_SSH_PRIVATE_KEY)
 fi
-if [ -z "$BORG_SSH_PRIVATE_KEY_BASE64" ]; then
-    echo "ERROR: BORG_SSH_PRIVATE_KEY_BASE64 is not set" >&2 ; ERROR=1
+if [ -z "$BORG_SSH_PRIVATE_KEY" ]; then
+    echo "ERROR: BORG_SSH_PRIVATE_KEY is not set" >&2 ; ERROR=1
 fi
 
 set -u
@@ -56,6 +56,7 @@ while true; do
     break
 done < "$TEMP_FILE"
 rm "$TEMP_FILE"
+
 
 # Add server public keys to known_hosts
 if [ ! -f "$HOME/.ssh/known_hosts" ]; then
