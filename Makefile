@@ -51,7 +51,7 @@ infra-create:
 
 infra-configure: $(TF_OUTPUTS)
 	cd $(CWD)/infra/ansible
-	ansible-galaxy install -r requirements.yml
+	ansible-galaxy install -r requirements.yml --force
 	ansible-playbook -vv configure.yml --extra-vars="$$(jq 'with_entries(.value |= .value)' $(TF_OUTPUTS))"
 
 
@@ -75,7 +75,8 @@ app-configure: $(TF_OUTPUTS)
 	@export VAULT_ADMIN_TOKEN="$(call random_token)"
 	$(MAKE) --no-print-directory app-destroy
 	$(MAKE) --no-print-directory app-deploy
-	echo "Connect to the Vaultwarden admin panel using the auth token:"
+	FQDN=$(call tf_output,fqdn)
+	echo "Browse to Vaultwarden admin panel at https://$${FQDN}/admin and use the following token:"
 	echo "  $${VAULT_ADMIN_TOKEN}"
 	echo ""
 	echo "Then press enter to restart the instance."
@@ -91,6 +92,10 @@ app-deploy: $(TF_OUTPUTS)
 	HOST=$(call tf_output,instance_ip)
 	USER=$(call tf_output,deployer_username)
 	docker -H "ssh://$${USER}@$${HOST}" stack deploy --compose-file docker-compose.yml --with-registry-auth $(STACK_NAME)
+	set +x
+	printf '%s' 'Waiting for containers to start ...'
+	until ! docker service ls --format '{{ .Replicas }}' | grep -q '0/'; do printf '.'; sleep 3; done
+	printf '\n'
 
 
 app-destroy: $(TF_OUTPUTS)
@@ -100,7 +105,7 @@ app-destroy: $(TF_OUTPUTS)
 	docker -H "ssh://$${USER}@$${HOST}" stack rm $(STACK_NAME)
 	set +x
 	printf '%s' 'Waiting for containers to be removed ...'
-	until [ -z "$$(docker stack ps $(STACK_NAME) -q 2>/dev/null)" ]; do printf '%s' '.'; sleep 1; done
+	until [ -z "$$(docker stack ps $(STACK_NAME) -q 2>/dev/null)" ]; do printf '.'; sleep 1; done
 	printf '\n'
 
 
