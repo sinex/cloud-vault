@@ -5,3 +5,7 @@ BORG_PASSPHRASE: "{{ lookup('env', 'BORG_PASSPHRASE') }}"
 BORG_SSH_PRIVATE_KEY: "{{ lookup('env', 'BORG_SSH_PRIVATE_KEY') }}"
 
 VAULTWARDEN_ENV: "{{ lookup('file', '../../vaultwarden.env') }}"
+
+CLOUDFLARE_USER: "MyCloudflareUser"
+
+CLOUDFLARE_TOKEN: "MyCloudFlareToken"
