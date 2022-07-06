@@ -5,12 +5,6 @@
     - name: OS-specific configuration
       include_tasks: "configure.{{ ansible_facts['os_family'] | lower }}.yml"
 
-    - name: Remove unused packages
-      package:
-        state: absent
-        name:
-          - cockpit
-
     - name: Upgrade packages
       package:
         name: '*'
