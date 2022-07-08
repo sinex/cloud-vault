@@ -22,7 +22,7 @@ An example file is included in this repo containing dummy values for all configu
 ```shell
 cp .env.example .env
 cp vaultwarden.env.example vaultwarden.example
-cp infra/terraform/terraform.tfvars.example infra/terraform/terraform.tfvars
+cp terraform/terraform.tfvars.example terraform/terraform.tfvars
 ```
 
 ### Deployment configuration
@@ -48,7 +48,7 @@ This project has been designed with using Terraform Cloud in mind, so any variab
 It is recommended that the sensitive values are defined there instead of within the local file.
 
 ```terraform
-# infra/terraform/terraform.tfvars
+# terraform/terraform.tfvars
 
 # OCI config
 # ----------------------------------------------------------------------------

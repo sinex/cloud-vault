@@ -2,16 +2,16 @@ repo:
   - any: ['.github/**/*', '.gitignore', 'README.*', '*.example', '**/.example']
 
 ansible:
-  - 'infra/ansible/**/*'
+  - 'ansible/**/*'
 
 terraform:
-  - 'infra/terraform/**/*'
+  - 'terraform/**/*'
 
 borg:
-  - 'borg/**/*'
+  - 'images/borg/**/*'
 
 caddy:
-  - 'caddy/**/*'
+  - 'images/caddy/**/*'
 
 docker:
-  - any: ['docker-compose.*', '*/Dockerfile']
+  - any: ['docker-compose.*', '**/Dockerfile']
