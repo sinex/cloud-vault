@@ -13,7 +13,11 @@ EOF
 
 # Cloudflare config
 # ----------------------------------------------------------------------------
+
+# API Token with Zone.DNS scope
 cloudflare_api_token = "..."
+
+# Zone where DNS records will be created
 cloudflare_zone      = "example.com"
 
 

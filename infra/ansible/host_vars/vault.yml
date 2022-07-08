@@ -6,6 +6,6 @@ BORG_SSH_PRIVATE_KEY: "{{ lookup('env', 'BORG_SSH_PRIVATE_KEY') }}"
 
 VAULTWARDEN_ENV: "{{ lookup('file', '../../vaultwarden.env') }}"
 
-CLOUDFLARE_USER: "MyCloudflareUser"
+CLOUDFLARE_ZONE: "{{ lookup('env', 'VAULT_DOMAIN') }}"
 
-CLOUDFLARE_TOKEN: "MyCloudFlareToken"
+CLOUDFLARE_TOKEN: "{{ lookup('env', 'CLOUDFLARE_API_TOKEN') }}"

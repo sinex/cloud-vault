@@ -23,7 +23,10 @@
 		# Send the true remote IP to Rocket, so that vaultwarden can put this in the
 		# log, so that fail2ban can ban the correct IP.
 		header_up X-Real-IP {remote_host}
+		header_down -server
 	}
+
+	header -server
 }
 
 :8888 {
