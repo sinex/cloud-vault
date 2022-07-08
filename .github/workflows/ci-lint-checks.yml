@@ -15,7 +15,12 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        image: [caddy, borg, .github/actions/crontab-lint, .github/actions/docker-compose-deploy]
+        image: [
+            images/caddy,
+            images/borg,
+            .github/actions/crontab-lint,
+            .github/actions/docker-compose-deploy
+        ]
     steps:
       - uses: actions/checkout@v3
       - uses: luke142367/Docker-Lint-Action@v1.1.1
@@ -45,4 +50,4 @@ jobs:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/crontab-lint
         with:
-          crontab: borg/crontab
+          crontab: images/borg/crontab

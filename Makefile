@@ -4,7 +4,7 @@
 STACK_NAME   := vault
 
 CWD          := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-TF_OUTPUTS   := $(CWD)/infra/terraform/.terraform/outputs.json
+TF_OUTPUTS   := $(CWD)/terraform/.terraform/outputs.json
 
 CONTAINER_REGISTRY_PREFIX :=
 ifneq ($(CONTAINER_REGISTRY),)
@@ -43,24 +43,24 @@ push-images:
 	$(DOCKER) push $(CONTAINER_REGISTRY_PREFIX)vault_borg
 	$(DOCKER) push $(CONTAINER_REGISTRY_PREFIX)vault_caddy
 
-$(CONTAINER_REGISTRY_PREFIX)vault_% : %/
-	$(DOCKER) build -t $@:latest $*/
+$(CONTAINER_REGISTRY_PREFIX)vault_% : images/%
+	$(DOCKER) build -t $@:latest $<
 
 infra-create:
-	cd $(CWD)/infra/terraform
+	cd $(CWD)/terraform
 	terraform init
 	terraform apply
 	terraform output -json > $(TF_OUTPUTS)
 
 
 infra-configure: $(TF_OUTPUTS)
-	cd $(CWD)/infra/ansible
+	cd $(CWD)/ansible
 	ansible-galaxy install -r requirements.yml --force
 	ansible-playbook -vv configure.yml --extra-vars="$$(jq 'with_entries(.value |= .value)' $(TF_OUTPUTS))"
 
 
 infra-destroy:
-	cd infra/terraform
+	cd terraform
 	terraform init
 	terraform destroy
 	rm -f $(TF_OUTPUTS)
@@ -68,7 +68,7 @@ infra-destroy:
 
 $(TF_OUTPUTS):
 	@echo "Reading deployment variables ..."
-	( cd infra/terraform && terraform output -json ) > $(TF_OUTPUTS)
+	( cd terraform && terraform output -json ) > $(TF_OUTPUTS)
 	if [ "$$(cat "$(TF_OUTPUTS)")" = "{}" ]; then
 		echo "Infrastructure does not seem to be deployed. Run 'make infra-deploy' before deploying the application" >&2
 		exit 1
