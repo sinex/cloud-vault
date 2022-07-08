@@ -1,0 +1,17 @@
+repo:
+  - any: ['.github/**/*', '.gitignore', 'README.*', '*.example', '**/.example']
+
+ansible:
+  - 'infra/ansible/**/*'
+
+terraform:
+  - 'infra/terraform/**/*'
+
+borg:
+  - 'borg/**/*'
+
+caddy:
+  - 'caddy/**/*'
+
+docker:
+  - any: ['docker-compose.*', '*/Dockerfile']
