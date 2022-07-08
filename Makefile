@@ -11,8 +11,12 @@ ifneq ($(CONTAINER_REGISTRY),)
 CONTAINER_REGISTRY_PREFIX := $(CONTAINER_REGISTRY)/
 endif
 
-tf_output     = $(shell jq .$(1).value $(TF_OUTPUTS))
+tf_output     = $(shell jq -r .$(1).value $(TF_OUTPUTS))
 random_token  = $(shell openssl rand -base64 48)
+
+SSH_URI  := "ssh://$(call tf_output,deployer_username)@$(call tf_output,instance_ip)"
+DOCKER   := docker -H $(SSH_URI)
+
 
 .PHONY: default build-images push-images infra-create infra-configure infra-destroy app-configure app-deploy app-destroy host-shell borg-shell vaultwarden-shell
 
@@ -36,11 +40,11 @@ default:
 build-images: $(addprefix $(CONTAINER_REGISTRY_PREFIX),vault_borg vault_caddy)
 
 push-images:
-	docker push $(CONTAINER_REGISTRY_PREFIX)vault_borg
-	docker push $(CONTAINER_REGISTRY_PREFIX)vault_caddy
+	$(DOCKER) push $(CONTAINER_REGISTRY_PREFIX)vault_borg
+	$(DOCKER) push $(CONTAINER_REGISTRY_PREFIX)vault_caddy
 
 $(CONTAINER_REGISTRY_PREFIX)vault_% : %/
-	docker build -t $@:latest $*/
+	$(DOCKER) build -t $@:latest $*/
 
 infra-create:
 	cd $(CWD)/infra/terraform
@@ -89,23 +93,20 @@ app-configure: $(TF_OUTPUTS)
 app-deploy: $(TF_OUTPUTS)
 	@true
 	set -x
-	HOST=$(call tf_output,instance_ip)
-	USER=$(call tf_output,deployer_username)
-	docker -H "ssh://$${USER}@$${HOST}" stack deploy --compose-file docker-compose.yml --with-registry-auth $(STACK_NAME)
+	$(DOCKER) stack deploy --compose-file docker-compose.yml --with-registry-auth $(STACK_NAME)
 	set +x
 	printf '%s' 'Waiting for containers to start ...'
-	until ! docker service ls --format '{{ .Replicas }}' | grep -q '0/'; do printf '.'; sleep 3; done
+	sleep 3
+	until ! $(DOCKER) service ls --format '{{ .Replicas }}' | grep -q '0/'; do printf '.'; sleep 3; done
 	printf '\n'
 
 
 app-destroy: $(TF_OUTPUTS)
 	@set -x
-	HOST=$(call tf_output,instance_ip)
-	USER=$(call tf_output,deployer_username)
-	docker -H "ssh://$${USER}@$${HOST}" stack rm $(STACK_NAME)
+	$(DOCKER) stack rm $(STACK_NAME)
 	set +x
 	printf '%s' 'Waiting for containers to be removed ...'
-	until [ -z "$$(docker stack ps $(STACK_NAME) -q 2>/dev/null)" ]; do printf '.'; sleep 1; done
+	until [ -z "$$($(DOCKER) stack ps $(STACK_NAME) -q 2>/dev/null)" ]; do printf '.'; sleep 1; done
 	printf '\n'
 
 
@@ -118,10 +119,7 @@ host-shell: $(TF_OUTPUTS)
 
 borg-shell: $(TF_OUTPUTS)
 	@set -x
-	HOST=$(call tf_output,instance_ip)
-	USER=$(call tf_output,deployer_username)
-	DOCKER_HOST="ssh://$${USER}@$${HOST}"
-	CONTAINER_ID=$$(docker ps --latest --filter name=$(STACK_NAME)_borg --format '{{ .ID }}')
+	CONTAINER_ID=$$($(DOCKER) ps --latest --filter name=$(STACK_NAME)_borg --format '{{ .ID }}')
 	if [ -n "$${CONTAINER_ID}" ]; then
 		docker exec -it "$${CONTAINER_ID}" /entrypoint.sh sh
 	else
@@ -131,10 +129,7 @@ borg-shell: $(TF_OUTPUTS)
 
 borg-backup: $(TF_OUTPUTS)
 	@set -x
-	HOST=$(call tf_output,instance_ip)
-	USER=$(call tf_output,deployer_username)
-	DOCKER_HOST="ssh://$${USER}@$${HOST}"
-	CONTAINER_ID=$$(docker ps --latest --filter name=$(STACK_NAME)_borg --format '{{ .ID }}')
+	CONTAINER_ID=$$($(DOCKER) ps --latest --filter name=$(STACK_NAME)_borg --format '{{ .ID }}')
 	if [ -n "$${CONTAINER_ID}" ]; then
 		docker exec -it "$${CONTAINER_ID}" /entrypoint.sh borg create --stats --compression lz4 '::{now}' /data
 	else
@@ -146,10 +141,7 @@ borg-backup: $(TF_OUTPUTS)
 
 vaultwarden-shell: $(TF_OUTPUTS)
 	@set -x
-	HOST=$(call tf_output,instance_ip)
-	USER=$(call tf_output,deployer_username)
-	DOCKER_HOST="ssh://$${USER}@$${HOST}"
-	CONTAINER_ID=$$(docker ps --latest --filter name=$(STACK_NAME)_vaultwarden --format '{{ .ID }}')
+	CONTAINER_ID=$$($(DOCKER) ps --latest --filter name=$(STACK_NAME)_vaultwarden --format '{{ .ID }}')
 	if [ -n "$${CONTAINER_ID}" ]; then
 		docker exec -it "$${CONTAINER_ID}" bash
 	else
