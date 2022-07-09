@@ -18,3 +18,10 @@
     option: enabled
     value: 1
     no_extra_spaces: yes
+
+- name: Remove cockpit
+  yum:
+    name:
+      - cockpit
+    state: absent
+    autoremove: yes
