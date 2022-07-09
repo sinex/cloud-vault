@@ -1,5 +1,9 @@
 repo:
-  - any: ['.github/**/*', '.gitignore', 'README.*', '*.example', '**/.example', 'Makefile']
+  - '.github/**/*'
+  - '.gitignore'
+  - 'README.*'
+  - '**/.example'
+  - 'Makefile'
 
 ansible:
   - 'ansible/**/*'
@@ -14,4 +18,5 @@ caddy:
   - 'images/caddy/**/*'
 
 docker:
-  - any: ['docker-compose.*', '**/Dockerfile']
+  - 'docker-compose.*'
+  - '**/Dockerfile'
