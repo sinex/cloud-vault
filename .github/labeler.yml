@@ -1,5 +1,5 @@
 repo:
-  - any: ['.github/**/*', '.gitignore', 'README.*', '*.example', '**/.example']
+  - any: ['.github/**/*', '.gitignore', 'README.*', '*.example', '**/.example', 'Makefile']
 
 ansible:
   - 'ansible/**/*'

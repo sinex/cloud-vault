@@ -14,9 +14,6 @@ endif
 tf_output     = $(shell jq -r .$(1).value $(TF_OUTPUTS))
 random_token  = $(shell openssl rand -base64 48)
 
-SSH_URI  := "ssh://$(call tf_output,deployer_username)@$(call tf_output,instance_ip)"
-DOCKER   := docker -H $(SSH_URI)
-
 
 .PHONY: default build-images push-images infra-create infra-configure infra-destroy app-configure app-deploy app-destroy host-shell borg-shell vaultwarden-shell
 
@@ -37,14 +34,33 @@ default:
 	echo "vaultwarden-shell         │ (docker)    Start a terminal in the vaultwarden container"
 
 
+$(TF_OUTPUTS):
+	@echo "Reading deployment variables ..."
+	( cd terraform && terraform output -json ) > $(TF_OUTPUTS)
+	if [ "$$(cat "$(TF_OUTPUTS)")" = "{}" ] || [ "$$(cat "$(TF_OUTPUTS)")" = "" ]; then
+		echo "Infrastructure does not seem to be deployed. Run 'make infra-deploy' before deploying the application" >&2
+		rm "$(TF_OUTPUTS)"
+		exit 1
+	fi
+
+
+debug: $(TF_OUTPUTS)
+	@set -x
+	DOCKER_HOST="ssh://$(call tf_output,deployer_username)@$(call tf_output,instance_ip)"
+	docker -H "$${DOCKER_HOST}" pull $(CONTAINER_REGISTRY_PREFIX)vault_borg:latest
+
+
 build-images: $(addprefix $(CONTAINER_REGISTRY_PREFIX),vault_borg vault_caddy)
 
+
 push-images:
-	$(DOCKER) push $(CONTAINER_REGISTRY_PREFIX)vault_borg
-	$(DOCKER) push $(CONTAINER_REGISTRY_PREFIX)vault_caddy
+	docker push $(CONTAINER_REGISTRY_PREFIX)vault_borg
+	docker push $(CONTAINER_REGISTRY_PREFIX)vault_caddy
+
 
 $(CONTAINER_REGISTRY_PREFIX)vault_% : images/%
-	$(DOCKER) build -t $@:latest $<
+	docker build -t $@:latest $<
+
 
 infra-create:
 	cd $(CWD)/terraform
@@ -53,26 +69,17 @@ infra-create:
 	terraform output -json > $(TF_OUTPUTS)
 
 
+
 infra-configure: $(TF_OUTPUTS)
 	cd $(CWD)/ansible
-	ansible-galaxy install -r requirements.yml --force
-	ansible-playbook -vv configure.yml --extra-vars="$$(jq 'with_entries(.value |= .value)' $(TF_OUTPUTS))"
-
+	echo ansible-galaxy install -r requirements.yml --force
+	echo ansible-playbook -vv configure.yml --extra-vars="$$(jq 'with_entries(.value |= .value)' $(TF_OUTPUTS))"
 
 infra-destroy:
 	cd terraform
 	terraform init
 	terraform destroy
 	rm -f $(TF_OUTPUTS)
-
-
-$(TF_OUTPUTS):
-	@echo "Reading deployment variables ..."
-	( cd terraform && terraform output -json ) > $(TF_OUTPUTS)
-	if [ "$$(cat "$(TF_OUTPUTS)")" = "{}" ]; then
-		echo "Infrastructure does not seem to be deployed. Run 'make infra-deploy' before deploying the application" >&2
-		exit 1
-	fi
 
 
 app-configure: $(TF_OUTPUTS)
@@ -92,34 +99,36 @@ app-configure: $(TF_OUTPUTS)
 
 app-deploy: $(TF_OUTPUTS)
 	@true
+	DOCKER_HOST="ssh://$(call tf_output,deployer_username)@$(call tf_output,instance_ip)"
 	set -x
-	$(DOCKER) stack deploy --compose-file docker-compose.yml --with-registry-auth $(STACK_NAME)
+	docker-compose -H "$${DOCKER_HOST}" pull
+	docker -H "$${DOCKER_HOST}" stack deploy --compose-file docker-compose.yml --with-registry-auth $(STACK_NAME)
 	set +x
 	printf '%s' 'Waiting for containers to start ...'
 	sleep 3
-	until ! $(DOCKER) service ls --format '{{ .Replicas }}' | grep -q '0/'; do printf '.'; sleep 3; done
+	until ! docker -H "$${DOCKER_HOST}" service ls --format '{{ .Replicas }}' | grep -q '0/'; do printf '.'; sleep 3; done
 	printf '\n'
 
 
 app-destroy: $(TF_OUTPUTS)
-	@set -x
-	$(DOCKER) stack rm $(STACK_NAME)
-	set +x
+	@true
+	DOCKER_HOST="ssh://$(call tf_output,deployer_username)@$(call tf_output,instance_ip)"
+	( set -x ; docker -H "$${DOCKER_HOST}" stack rm $(STACK_NAME) )
 	printf '%s' 'Waiting for containers to be removed ...'
-	until [ -z "$$($(DOCKER) stack ps $(STACK_NAME) -q 2>/dev/null)" ]; do printf '.'; sleep 1; done
+	until [ -z "$$(docker -H "$${DOCKER_HOST}" stack ps $(STACK_NAME) -q 2>/dev/null)" ]; do printf '.'; sleep 1; done
 	printf '\n'
 
 
 host-shell: $(TF_OUTPUTS)
 	@set -x
-	HOST=$(call tf_output,instance_ip)
-	USER=$(call tf_output,admin_username)
-	ssh "$${USER}@$${HOST}"
+	ssh "$(call tf_output,deployer_username)@$(call tf_output,instance_ip)"
 
 
 borg-shell: $(TF_OUTPUTS)
-	@set -x
-	CONTAINER_ID=$$($(DOCKER) ps --latest --filter name=$(STACK_NAME)_borg --format '{{ .ID }}')
+	@true
+	DOCKER_HOST="ssh://$(call tf_output,deployer_username)@$(call tf_output,instance_ip)"
+	set -x
+	CONTAINER_ID=$$(docker -H "$${DOCKER_HOST}" ps --latest --filter name=$(STACK_NAME)_borg --format '{{ .ID }}')
 	if [ -n "$${CONTAINER_ID}" ]; then
 		docker exec -it "$${CONTAINER_ID}" /entrypoint.sh sh
 	else
@@ -127,9 +136,12 @@ borg-shell: $(TF_OUTPUTS)
 		echo "borg container is not running"
 	fi
 
+
 borg-backup: $(TF_OUTPUTS)
-	@set -x
-	CONTAINER_ID=$$($(DOCKER) ps --latest --filter name=$(STACK_NAME)_borg --format '{{ .ID }}')
+	@true
+	DOCKER_HOST="ssh://$(call tf_output,deployer_username)@$(call tf_output,instance_ip)"
+	set -x
+	CONTAINER_ID=$$(docker -H "$${DOCKER_HOST}" ps --latest --filter name=$(STACK_NAME)_borg --format '{{ .ID }}')
 	if [ -n "$${CONTAINER_ID}" ]; then
 		docker exec -it "$${CONTAINER_ID}" /entrypoint.sh borg create --stats --compression lz4 '::{now}' /data
 	else
@@ -138,10 +150,11 @@ borg-backup: $(TF_OUTPUTS)
 	fi
 
 
-
 vaultwarden-shell: $(TF_OUTPUTS)
-	@set -x
-	CONTAINER_ID=$$($(DOCKER) ps --latest --filter name=$(STACK_NAME)_vaultwarden --format '{{ .ID }}')
+	@true
+	DOCKER_HOST="ssh://$(call tf_output,deployer_username)@$(call tf_output,instance_ip)"
+	set -x
+	CONTAINER_ID=$$(docker -H "$${DOCKER_HOST}" ps --latest --filter name=$(STACK_NAME)_vaultwarden --format '{{ .ID }}')
 	if [ -n "$${CONTAINER_ID}" ]; then
 		docker exec -it "$${CONTAINER_ID}" bash
 	else
