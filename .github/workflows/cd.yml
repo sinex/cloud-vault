@@ -27,7 +27,7 @@ jobs:
       deployer_username: ${{ steps.tfc.outputs.deployer_username }}
     steps:
       - id: tfc
-        uses: /.github/actions/docker-compose-deploy
+        uses: ./.github/actions/terraform-cloud-outputs
         with:
           token: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
           org: ${{ secrets.TERRAFORM_CLOUD_ORG }}
