@@ -9,14 +9,40 @@ on:
 jobs:
 
   calculated_values:
-    name: Calculate values for other jobs
+    name: Calculated values for other jobs
     runs-on: ubuntu-latest
     outputs:
-      tree_sha: ${{ steps.tree.outputs.value }}
+      tree_sha: ${{ steps.tree_sha.outputs.value }}
+      deployer_username: ${{ steps.tf_deployer_username.outputs.value }}
     steps:
       - uses: actions/checkout@v3
-      - id: tree
+      - id: tree_sha
         run: echo "::set-output name=value::$(git rev-parse HEAD:)"
+
+  terraform_outputs:
+    name: Fetch terraform outputs
+    runs-on: ubuntu-latest
+    outputs:
+      instance_ip: ${{ steps.instance_ip.outputs.value }}
+      deployer_username: ${{ steps.deployer_username.outputs.value }}
+    steps:
+      - id: instance_ip
+        uses: cbsinteractive/get-tfc-workspace-currentstate-output-action@v1
+        with:
+          tfcToken: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
+          orgName: ${{ secrets.TERRAFORM_CLOUD_ORG }}
+          workspaceName: ${{ secrets.TERRAFORM_CLOUD_WORKSPACE }}
+          variable: instance_ip
+
+      - id: deployer_username
+        uses: cbsinteractive/get-tfc-workspace-currentstate-output-action@v1
+        with:
+          tfcToken: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
+          orgName: ${{ secrets.TERRAFORM_CLOUD_ORG }}
+          workspaceName: ${{ secrets.TERRAFORM_CLOUD_WORKSPACE }}
+          variable: deployer_username
+
+
 
   clean:
     name: Delete old packages
@@ -64,6 +90,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - calculated_values
+      - terraform_outputs
       - build
     if: startsWith(github.ref, 'refs/heads/deploy')
     env:
@@ -94,8 +121,8 @@ jobs:
         with:
           #ssh_user: ${{ secrets.DEPLOYER_USERNAME }}
           #ssh_host:  ${{ secrets.VAULT_HOSTNAME }}.${{ secrets.VAULT_DOMAIN }}
-          ssh_user: deployer
-          ssh_host: vault.jstover.net
+          ssh_user: ${{ needs.terraform_outputs.outputs.deployer_username }}
+          ssh_host: ${{ needs.terraform_outputs.outputs.instance_ip }}
           ssh_key: ${{ secrets.SSH_KEY }}
           stack_name: vault
           docker_registry: ghcr.io
