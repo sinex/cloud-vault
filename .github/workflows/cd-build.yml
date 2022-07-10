@@ -22,7 +22,7 @@ jobs:
     steps:
       - uses: snok/container-retention-policy@v1
         with:
-          image-names: vault_borg vault_caddy
+          image-names: vault_borg, vault_caddy
           cut-off: 1 week ago UTC
           timestamp-to-use: updated_at
           account-type: personal
