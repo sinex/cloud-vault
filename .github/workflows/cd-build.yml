@@ -14,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - id: tree
-        run: echo "::set-output name=value::$(git rev-parse HEAD:)"
+        run: echo "::set-output name=value::banana"
 
   testing:
     runs-on: ubuntu-latest
