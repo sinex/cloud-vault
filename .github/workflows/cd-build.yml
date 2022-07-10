@@ -53,6 +53,6 @@ jobs:
           context: "{{defaultContext}}:images/${{ matrix.image }}"
           tags: |
             ghcr.io/sinex/vault_${{ matrix.image }}:latest
-            ghcr.io/sinex/vault_${{ matrix.image }}:{{ needs.calculated_values.outputs.tree_sha }}
+            ghcr.io/sinex/vault_${{ matrix.image }}:${{ needs.calculated_values.outputs.tree_sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
