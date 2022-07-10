@@ -1,6 +1,9 @@
 name: Linter Checks
 
-on: [push]
+on:
+  push:
+    branches-ignore:
+      - deploy-test
 
 jobs:
 
