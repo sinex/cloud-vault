@@ -31,7 +31,7 @@ mkdir -m 700 ~/.ssh
 eval "$(ssh-agent)"
 echo "$SSH_KEY" | tr -d '\r' | ssh-add -
 ssh-add -L
-ssh-keyscan -p "$SSH_PORT" "$SSH_HOST" > ~/.ssh/known_hosts
+ssh-keyscan -H -p "$SSH_PORT" "$SSH_HOST" > ~/.ssh/known_hosts
 chmod 600 ~/.ssh/known_hosts
 
 
