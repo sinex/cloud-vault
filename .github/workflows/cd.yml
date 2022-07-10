@@ -43,14 +43,12 @@ jobs:
       - uses: camargo/delete-untagged-action@v1
         with:
           github-token: ${{ secrets.DELETE_PACKAGES_TOKEN }}
-          repository: ghcr.io/sinex
           package-name: vault_caddy
           personal-account: true
 
       - uses: camargo/delete-untagged-action@v1
         with:
           github-token: ${{ secrets.DELETE_PACKAGES_TOKEN }}
-          repository: ghcr.io/sinex
           package-name: vault_borg
           personal-account: true
 
