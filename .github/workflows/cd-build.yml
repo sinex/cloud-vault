@@ -68,7 +68,7 @@ jobs:
     if: startsWith(github.ref, 'refs/heads/deploy')
     env:
       IMAGE_TAG: ${{ needs.calculated_values.outputs.tree_sha }}
-      VAULT_HOSTNAME: vault
+      VAULT_HOSTNAME: ${{ secrets.VAULT_HOSTNAME }}
       VAULT_DOMAIN: ${{ secrets.VAULT_DOMAIN }}
       VAULT_ADMIN_EMAIL: ${{ secrets.VAULT_ADMIN_EMAIL }}
       VAULT_ORG_NAME: ${{ secrets.VAULT_ORG_NAME }}
@@ -92,6 +92,10 @@ jobs:
 
       - uses: ./.github/actions/docker-compose-deploy
         with:
-          ssh_host: ${{ secrets.DEPLOYER_USERNAME}}@${{ secrets.VAULT_DOMAIN }}
+          ssh_user: ${{ secrets.DEPLOYER_USERNAME }}
+          ssh_host:  ${{ secrets.VAULT_HOSTNAME }}.${{ secrets.VAULT_DOMAIN }}
           ssh_key: ${{ secrets.SSH_KEY }}
           stack_name: vault
+          docker_registry: ghcr.io
+          docker_username: ${{ github.repository_owner }}
+          docker_password: ${{ secrets.GITHUB_TOKEN }}
