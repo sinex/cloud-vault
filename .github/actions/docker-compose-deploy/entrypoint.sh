@@ -1,7 +1,5 @@
 #!/bin/sh
-set -eux
-
-set
+set -eu
 
 ERROR=0
 
@@ -27,11 +25,8 @@ echo "$SSH_KEY" | tr -d '\r' | ssh-add -
 ssh-add -L
 ssh-keyscan -H -p "$SSH_PORT" "$SSH_HOST" > /etc/ssh/ssh_known_hosts
 
-
 export DOCKER_HOST="ssh://${SSH_USER}@${SSH_HOST}:${SSH_PORT}"
-
 if [ -n "$DOCKER_USERNAME" ] && [ -n "$DOCKER_PASSWORD" ]; then
     echo "$DOCKER_PASSWORD" | docker login "$DOCKER_REGISTRY" -u "$DOCKER_USERNAME" --password-stdin
 fi;
-
 docker stack deploy --compose-file "${STACK_FILE}" --with-registry-auth "${STACK_NAME}"
