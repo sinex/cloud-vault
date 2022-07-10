@@ -95,5 +95,3 @@ jobs:
           ssh_host: ${{ secrets.DEPLOYER_USERNAME}}@${{ secrets.VAULT_DOMAIN }}
           ssh_key: ${{ secrets.SSH_KEY }}
           stack_name: vault
-          pull: true
-          build: true

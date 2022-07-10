@@ -22,14 +22,14 @@ EOF
 eval "$(ssh-agent)"
 echo "$INPUT_SSH_KEY" | tr -d '\r' | ssh-add -
 
-docker context create remote --docker "host=ssh://$INPUT_SSH_HOST:${INPUT_SSH_PORT:-22}"
-docker context use remote
+
+export DOCKER_HOST="ssh://$INPUT_SSH_HOST:${INPUT_SSH_PORT:-22}"
+
+docker info
+docker run hello-world
 
 docker stack deploy \
     --compose-file "${INPUT_STACK_FILE:-docker-compose.yml}" \
     "${INPUT_STACK_NAME:-stack}"
 
 #    --with-registry-auth \
-docker context use default
-docker context rm remote
-
