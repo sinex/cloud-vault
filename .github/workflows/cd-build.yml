@@ -16,12 +16,6 @@ jobs:
       - id: tree
         run: echo "::set-output name=value::$(git rev-parse HEAD:)"
 
-  testing:
-    runs-on: ubuntu-latest
-    needs: calculated_values
-    steps:
-      - run: echo "${{ needs.calculated_values.outputs.tree_sha }}"
-
   clean:
     name: Delete old packages
     runs-on: ubuntu-latest
@@ -37,23 +31,14 @@ jobs:
           token: ${{ secrets.DELETE_PACKAGES_TOKEN }}
 
   build:
+    name: Build and Push
     runs-on: ubuntu-latest
+    needs: calculated_values
+    strategy:
+      matrix:
+        image: [caddy, borg]
+
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Find tree hash
-        run: echo "TREE_SHA=$(git rev-parse HEAD:)" >> $GITHUB_ENV
-
-      - uses: snok/container-retention-policy@v1
-        with:
-          image-names: vault_${{ matrix.image }}
-          cut-off: 1 week ago UTC
-          timestamp-to-use: updated_at
-          account-type: personal
-          keep-at-least: 5
-          skip-tags: latest
-          token: ${{ secrets.DELETE_PACKAGES_TOKEN }}
-
       - uses: docker/setup-buildx-action@v2
 
       - uses: docker/login-action@v2
@@ -68,65 +53,6 @@ jobs:
           context: "{{defaultContext}}:images/${{ matrix.image }}"
           tags: |
             ghcr.io/sinex/vault_${{ matrix.image }}:latest
-            ghcr.io/sinex/vault_${{ matrix.image }}:${{ env.TREE_SHA }}
+            ghcr.io/sinex/vault_${{ matrix.image }}:{{ needs.calculated_values.outputs.tree_sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-#  build:
-#    name: Build Image
-#    runs-on: ubuntu-latest
-#    strategy:
-#      matrix:
-#        image: [caddy, borg]
-#
-#    steps:
-#      - uses: snok/container-retention-policy@v1
-#        with:
-#          image-names: vault_${{ matrix.image }}
-#          cut-off: 1 week ago UTC
-#          timestamp-to-use: updated_at
-#          account-type: personal
-#          keep-at-least: 5
-#          skip-tags: latest
-#          token: ${{ secrets.DELETE_PACKAGES_TOKEN }}
-#
-#      - uses: docker/setup-buildx-action@v2
-#
-#      - uses: docker/login-action@v2
-#        with:
-#          registry: ghcr.io
-#          username: ${{ github.repository_owner }}
-#          password: ${{ secrets.GITHUB_TOKEN }}
-#
-#      - uses: docker/build-push-action@v3
-#        with:
-#          push: true
-#          context: "{{defaultContext}}:images/${{ matrix.image }}"
-#          tags: |
-#            ghcr.io/sinex/vault_${{ matrix.image }}:latest
-#            ghcr.io/sinex/vault_${{ matrix.image }}:${{ github.sha }}
-#          cache-from: type=gha
-#          cache-to: type=gha,mode=max
-#
-#  deploy:
-#    needs: build
-#    runs-on: ubuntu-latest
-#    env:
-#      VAULT_DATA_DIR: /data/vault
-#      VAULT_DOMAIN: ${{ secrets.VAULT_DOMAIN }}
-#      VAULT_ADMIN_EMAIL: ${{ secrets.VAULT_ADMIN_EMAIL }}
-#      VAULT_ORG_NAME: ${{ secrets.VAULT_ORG_NAME }}
-#      VAULT_SMTP_HOST: ${{ secrets.VAULT_SMTP_HOST }}
-#      VAULT_SMTP_USERNAME: ${{ secrets.VAULT_SMTP_USERNAME }}
-#      VAULT_SMTP_PASSWORD: ${{ secrets.VAULT_SMTP_PASSWORD }}
-#
-#    steps:
-#      - uses: actions/checkout@v3
-#      - uses: ./.github/actions/docker-compose-deploy
-#        with:
-#          ssh_host: ${{ secrets.DEPLOYER_USERNAME}}@${{ secrets.VAULT_DOMAIN }}
-#          ssh_key: ${{ secrets.SSH_KEY }}
-#          stack_name: vault
-#          pull: true
-#          build: true
-
