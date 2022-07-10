@@ -20,7 +20,7 @@ if [ -z "$DOCKER_PASSWORD" ]; then missing_parameter docker_password ; fi
 
 if [ $ERROR -eq 1 ]; then exit 1; fi
 
-mkdir -m 700 ~/.ssh
+#mkdir -m 700 ~/.ssh
 #cat << EOF > "$HOME/.ssh/config"
 #Host *
 #  StrictHostKeyChecking no
@@ -31,8 +31,7 @@ mkdir -m 700 ~/.ssh
 eval "$(ssh-agent)"
 echo "$SSH_KEY" | tr -d '\r' | ssh-add -
 ssh-add -L
-ssh-keyscan -H -p "$SSH_PORT" "$SSH_HOST" > ~/.ssh/known_hosts
-chmod 600 ~/.ssh/known_hosts
+ssh-keyscan -H -p "$SSH_PORT" "$SSH_HOST" > /etc/ssh/ssh_known_hosts
 
 
 export DOCKER_HOST="ssh://${SSH_USER}@${SSH_HOST}:${SSH_PORT}"
