@@ -66,8 +66,8 @@ infra-create:
 
 infra-configure: $(TF_OUTPUTS)
 	cd $(CWD)/ansible
-	echo ansible-galaxy install -r requirements.yml --force
-	echo ansible-playbook -vv configure.yml --extra-vars="$$(jq 'with_entries(.value |= .value)' $(TF_OUTPUTS))"
+	ansible-galaxy install -r requirements.yml --force
+	ansible-playbook -vv configure.yml --extra-vars="$$(jq 'with_entries(.value |= .value)' $(TF_OUTPUTS))"
 
 infra-destroy:
 	cd terraform
