@@ -111,8 +111,6 @@ jobs:
 
       - uses: ./.github/actions/docker-compose-deploy
         with:
-          #ssh_user: ${{ secrets.DEPLOYER_USERNAME }}
-          #ssh_host:  ${{ secrets.VAULT_HOSTNAME }}.${{ secrets.VAULT_DOMAIN }}
           ssh_user: ${{ needs.terraform_outputs.outputs.deployer_username }}
           ssh_host: ${{ needs.terraform_outputs.outputs.instance_ip }}
           ssh_key: ${{ secrets.SSH_KEY }}
