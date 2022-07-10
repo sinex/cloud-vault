@@ -32,7 +32,7 @@ jobs:
           tfcToken: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
           orgName: ${{ secrets.TERRAFORM_CLOUD_ORG }}
           workspaceName: ${{ secrets.TERRAFORM_CLOUD_WORKSPACE }}
-          variable: instance_ip
+          variableName: instance_ip
 
       - id: deployer_username
         uses: cbsinteractive/get-tfc-workspace-currentstate-output-action@v1
@@ -40,7 +40,7 @@ jobs:
           tfcToken: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
           orgName: ${{ secrets.TERRAFORM_CLOUD_ORG }}
           workspaceName: ${{ secrets.TERRAFORM_CLOUD_WORKSPACE }}
-          variable: deployer_username
+          variableName: deployer_username
 
 
 
