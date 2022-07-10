@@ -4,7 +4,6 @@ volumes:
   vaultwarden_data:
   caddy_data:
   caddy_config:
-  borg_cache:
 
 services:
 
@@ -49,7 +48,6 @@ services:
   borg:
     image: ${CONTAINER_REGISTRY:-ghcr.io}/vault_borg:${IMAGE_TAG:-latest}
     volumes:
-      - borg_cache:/borg_cache
       - vaultwarden_data:/data
     secrets:
       - BORG_REPO

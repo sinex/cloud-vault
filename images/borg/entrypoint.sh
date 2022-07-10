@@ -72,7 +72,7 @@ export BORG_RSH
 if [ ! -f "$DATA_DIR/.backup_restored" ]; then
 
     # Check repo exists before restoring
-    if borg info >/dev/null 2>&1; then
+    if borg info; then
         LATEST_BACKUP=$(borg list --last 1 --format '{archive}')
         echo "Restoring data from backup archive: $LATEST_BACKUP"
         if [ -n "$LATEST_BACKUP" ]; then
