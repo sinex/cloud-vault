@@ -1,0 +1,33 @@
+name: Terraform Cloud Outputs
+author: Joshua Stover <josh@jstover.net>
+description: 'Fetch outputs from a Terraform Cloud workspace'
+inputs:
+
+  token:
+    description: 'Terraform Cloud access token'
+    required: true
+
+  org:
+    description: 'Terraform Cloud organisation'
+    required: true
+
+  workspace:
+    description: 'Terraform Cloud workspace'
+    required: true
+
+  variables:
+    description: 'Comma-separated list of variables to fetch'
+    required: true
+
+runs:
+  using: docker
+  image: Dockerfile
+  env:
+    TFC_TOKEN: ${{ inputs.token }}
+    TFC_ORG: ${{ inputs.org }}
+    TFC_WORKSPACE: ${{ inputs.workspace }}
+    TFC_VARIABLES: ${{ inputs.variables }}
+
+branding:
+  icon: layers
+  color: gray-dark
