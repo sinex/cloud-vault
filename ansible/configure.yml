@@ -5,11 +5,6 @@
     - name: OS-specific configuration
       include_tasks: "configure.{{ ansible_facts['os_family'] | lower }}.yml"
 
-    - name: Upgrade packages
-      package:
-        name: '*'
-        state: latest
-
     - name: Install required packages
       package:
         state: present
@@ -160,7 +155,7 @@
         content: ""
         dest: /var/log/vaultwarden.log
         force: false
-        user: root
+        owner: root
         group: root
         mode: '0640'
 
