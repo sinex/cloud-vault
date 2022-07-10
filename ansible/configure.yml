@@ -160,7 +160,7 @@
         content: ""
         dest: /var/log/vaultwarden.log
         force: false
-        user: root
+        owner: root
         group: root
         mode: '0640'
 
