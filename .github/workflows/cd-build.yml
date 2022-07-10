@@ -14,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - id: tree
-        run: echo "::set-output name=value::banana"
+        run: echo "::set-output name=value::$(git rev-parse HEAD:)"
 
   testing:
     runs-on: ubuntu-latest
@@ -71,12 +71,6 @@ jobs:
             ghcr.io/sinex/vault_${{ matrix.image }}:${{ env.TREE_SHA }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-
-
 
 #  build:
 #    name: Build Image
