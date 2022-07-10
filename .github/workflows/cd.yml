@@ -85,7 +85,7 @@ jobs:
       - build
     if: startsWith(github.ref, 'refs/heads/deploy')
     env:
-      CONTAINER_REGISTRY: gncr.io
+      CONTAINER_REGISTRY: ghcr.io
       IMAGE_TAG: ${{ needs.calculated_values.outputs.tree_sha }}
       VAULT_HOSTNAME: ${{ secrets.VAULT_HOSTNAME }}
       VAULT_DOMAIN: ${{ secrets.VAULT_DOMAIN }}
