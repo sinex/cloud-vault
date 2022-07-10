@@ -1,5 +1,5 @@
 #!/bin/sh
-set -e
+set -eu
 
 ERROR=0
 
@@ -8,42 +8,25 @@ missing_parameter(){
     ERROR=1
 }
 
-if [ -z "$INPUT_SSH_KEY" ]; then
-    missing_parameter ssh_key
-fi
-
-if [ -z "$INPUT_SSH_HOST" ]; then
-    missing_parameter ssh_host
-fi
+if [ -z "$SSH_USER" ]; then missing_parameter ssh_user ; fi
+if [ -z "$SSH_HOST" ]; then missing_parameter ssh_host ; fi
+if [ -z "$SSH_PORT" ]; then missing_parameter ssh_port ; fi
+if [ -z "$SSH_KEY" ]; then missing_parameter ssh_key ; fi
+if [ -z "$STACK_FILE" ]; then missing_parameter stack_file ; fi
+if [ -z "$STACK_NAME" ]; then missing_parameter stack_name ; fi
+if [ -z "$DOCKER_REGISTRY" ]; then missing_parameter docker_registry ; fi
+if [ -z "$DOCKER_USERNAME" ]; then missing_parameter docker_username ; fi
+if [ -z "$DOCKER_PASSWORD" ]; then missing_parameter docker_password ; fi
 
 if [ $ERROR -eq 1 ]; then exit 1; fi
 
-if [ "$INPUT_FORCE_RECREATE" = "true" ]; then
-    FORCE_RECREATE_ARG="--force-recreate"
-fi
-
-if [ "$INPUT_BUILD" = "true" ]; then
-    BUILD_ARG="--build"
-fi
-
-mkdir -m 700 ~/.ssh
-cat << EOF > "$HOME/.ssh/config"
-Host *
-  StrictHostKeyChecking no
-  ControlMaster auto
-  ControlPath ~/.ssh/master-%r@%h:%p
-EOF
 eval "$(ssh-agent)"
-echo "$INPUT_SSH_KEY" | tr -d '\r' | ssh-add -
+echo "$SSH_KEY" | tr -d '\r' | ssh-add -
+ssh-add -L
+ssh-keyscan -H -p "$SSH_PORT" "$SSH_HOST" > /etc/ssh/ssh_known_hosts
 
-docker context create remote --docker "host=ssh://$INPUT_SSH_HOST:${INPUT_SSH_PORT:-22}"
-docker context use remote
-
-[ "$INPUT_PULL" = 'true' ] && docker-compose pull
-
-docker-compose "${INPUT_COMPOSE_ARGS}" -p "${INPUT_STACK_NAME:-stack}" -f "${INPUT_STACK_FILE:-docker-compose.yml}" \
-    up --detach "${INPUT_UP_ARGS}" "${BUILD_ARG}" "${FORCE_RECREATE_ARG}"
-
-docker context use default
-docker context rm remote
-
+export DOCKER_HOST="ssh://${SSH_USER}@${SSH_HOST}:${SSH_PORT}"
+if [ -n "$DOCKER_USERNAME" ] && [ -n "$DOCKER_PASSWORD" ]; then
+    echo "$DOCKER_PASSWORD" | docker login "$DOCKER_REGISTRY" -u "$DOCKER_USERNAME" --password-stdin
+fi;
+docker stack deploy --compose-file "${STACK_FILE}" --with-registry-auth "${STACK_NAME}"

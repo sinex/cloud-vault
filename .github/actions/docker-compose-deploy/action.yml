@@ -1,53 +1,62 @@
-name: docker-compose deployment
+name: Docker stack deployment
 author: Joshua Stover <josh@jstover.net>
-description: 'Deploy a docker-compose project to a remote server'
+description: 'Deploy a Docker swarm project to a remote server'
 inputs:
 
-  ssh_host:
-    description: Remote docker host (e.g. user@hostname)
+  ssh_user:
+    description: Remote docker user
     required: true
 
-  ssh_key:
-    description: Private key for connecting to the remote host
+  ssh_host:
+    description: Remote docker host
     required: true
 
   ssh_port:
     description: SSH port for the remote host
     required: false
+    default: "22"
+
+  ssh_key:
+    description: Private key for connecting to the remote host
+    required: true
 
   stack_file:
     description: Path to the docker-compose stack file
     required: false
+    default: "docker-compose.yml"
 
   stack_name:
     description: Name to use for the compose stack
     required: false
+    default: "stack"
 
-  pull:
-    description: Run `docker pull` before deploying stack
+  docker_registry:
+    description: Docker registry
+    required: false
+    default: ""
+
+  docker_username:
+    description: Username for docker registry
     required: false
 
-  force_recreate:
-    description: Run docker-compose with --force-recreate flag
-    required: false
-
-  build:
-    description: Run docker-compose with --build flag
-    required: false
-
-  compose_args:
-    description: Extra arguments to pass to `docker-compose`
-    required: false
-
-  up_args:
-    description: Extra arguments to pass to `docker-compose up`
+  docker_password:
+    description: Password for docker registry
     required: false
 
 runs:
   using: docker
   image: Dockerfile
+  env:
+    SSH_USER: ${{ inputs.ssh_user }}
+    SSH_HOST: ${{ inputs.ssh_host }}
+    SSH_PORT: ${{ inputs.ssh_port }}
+    SSH_KEY: ${{ inputs.ssh_key }}
+    STACK_FILE: ${{ inputs.stack_file }}
+    STACK_NAME: ${{ inputs.stack_name }}
+    DOCKER_REGISTRY: ${{ inputs.docker_registry }}
+    DOCKER_USERNAME: ${{ inputs.docker_username }}
+    DOCKER_PASSWORD: ${{ inputs.docker_password }}
 
 branding:
   icon: layers
   color: gray-dark
-
