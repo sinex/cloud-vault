@@ -20,6 +20,8 @@ if [ -z "$DOCKER_PASSWORD" ]; then missing_parameter docker_password ; fi
 
 if [ $ERROR -eq 1 ]; then exit 1; fi
 
+echo "$SSH_USER@$SSH_HOST" > /tmp/ssh_details
+cat /tmp/ssh_details
 
 mkdir -m 700 ~/.ssh
 #cat << EOF > "$HOME/.ssh/config"
