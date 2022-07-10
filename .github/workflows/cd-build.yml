@@ -10,12 +10,11 @@ jobs:
     name: Calculate values for other jobs
     runs-on: ubuntu-latest
     outputs:
-      tree_sha: ${{ steps.tree_sha.outputs.value }}
+      tree_sha: ${{ steps.tree.outputs.value }}
     steps:
       - uses: actions/checkout@v3
-      - id: tree_sha
+      - id: tree
         run: echo "::set-output name=value::$(git rev-parse HEAD:)"
-
 
   testing:
     runs-on: ubuntu-latest
