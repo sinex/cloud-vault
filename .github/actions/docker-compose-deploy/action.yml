@@ -49,7 +49,7 @@ runs:
   env:
     SSH_USER: ${{ inputs.ssh_user }}
     SSH_HOST: ${{ inputs.ssh_host }}
-    SSH_PORT: ${ inputs.ssh_port }}
+    SSH_PORT: ${{ inputs.ssh_port }}
     SSH_KEY: ${{ inputs.ssh_key }}
     STACK_FILE: ${{ inputs.stack_file }}
     STACK_NAME: ${{ inputs.stack_name }}
