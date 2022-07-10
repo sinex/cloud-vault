@@ -1,6 +1,6 @@
 locals {
   instances = {
-    primary: {id: 0},
+    primary : { id : 0 },
   }
 
 }

@@ -38,7 +38,7 @@ provider "cloudflare" {
 
 
 output "instance_ips" {
-  value = [for name, vnic in data.oci_core_vnic.app_vnic: vnic.public_ip_address]
+  value = [for name, vnic in data.oci_core_vnic.app_vnic : vnic.public_ip_address]
 }
 
 output "primary_ip" {
