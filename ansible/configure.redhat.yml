@@ -25,3 +25,8 @@
       - cockpit
     state: absent
     autoremove: true
+
+- name: Upgrade packages
+  yum:
+    name: '*'
+    state: latest
