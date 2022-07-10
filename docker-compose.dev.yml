@@ -1,0 +1,68 @@
+version: '3.9'
+
+volumes:
+  vaultwarden_data:
+  caddy_data:
+  caddy_config:
+  borg_cache:
+
+services:
+
+  vaultwarden:
+    image: vaultwarden/server:latest
+    environment:
+      - WEBSOCKET_ENABLED=true
+      - SIGNUPS_ALLOWED=false
+      - SHOW_PASSWORD_HINT=false
+      - INVITATIONS_ALLOWED=true
+      - INVITATION_ORG_NAME=${VAULT_ORG_NAME:-Vaultwarden}
+      - DOMAIN=https://${VAULT_HOSTNAME:?}.${VAULT_DOMAIN:?}
+      - SMTP_FROM=${VAULT_ADMIN_EMAIL}
+      - SMTP_FROM_NAME=${VAULT_ORG_NAME}
+      - LOG_FILE=/var/log/vaultwarden.log
+      # Usually runs without an admin token, but can be set temporarily by `make app-configure`
+      - ADMIN_TOKEN=${VAULT_ADMIN_TOKEN:-}
+      - IP_HEADER=CF-Connecting-IP
+    volumes:
+      - vaultwarden_data:/data
+      - /var/log/vaultwarden.log:/var/log/vaultwarden.log
+      - ./vaultwarden.env:/.env
+
+  caddy:
+    build: images/caddy
+    ports:
+      - 9090:80
+      - 9443:443
+
+    volumes:
+      - caddy_config:/config
+      - caddy_data:/data
+    environment:
+      - PROXY_HOST=vaultwarden
+      - LOG_FILE=/data/access.log
+      - DOMAIN=https://${VAULT_HOSTNAME:?}.${VAULT_DOMAIN:?}
+      - EMAIL=${VAULT_ADMIN_EMAIL:?}
+
+  borg:
+    build: images/borg
+    volumes:
+      - borg_cache:/borg_cache
+      - vaultwarden_data:/data
+    environment:
+      - BORG_REPO
+      - BORG_SSH_PRIVATE_KEY
+      - BORG_PASSPHRASE
+
+
+secrets:
+  BORG_REPO:
+    external: true
+
+  BORG_PASSPHRASE:
+    external: true
+
+  BORG_SSH_PRIVATE_KEY:
+    external: true
+
+  VAULTWARDEN_ENV:
+    external: true
