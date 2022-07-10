@@ -57,11 +57,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: roles-ansible/check-ansible-debian-stable-action@v1
-        with:
-          targets: "ansible/configure.yml"
       - name: Run ansible-lint
         uses: ansible-community/ansible-lint-action@v6
         with:
           path: "ansible/"
-
