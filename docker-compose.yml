@@ -32,7 +32,7 @@ services:
         mode: 0400
 
   caddy:
-    image: ${CONTAINER_REGISTRY:?}/vault_caddy:latest
+    image: ${CONTAINER_REGISTRY:?}/vault_caddy:${IMAGE_TAG:-latest}
     ports:
       - 80:80
       - 443:443
@@ -47,7 +47,7 @@ services:
       - EMAIL=${VAULT_ADMIN_EMAIL:?}
 
   borg:
-    image: ${CONTAINER_REGISTRY:?}/vault_borg:latest
+    image: ${CONTAINER_REGISTRY:?}/vault_borg:${IMAGE_TAG:-latest}
     volumes:
       - borg_cache:/borg_cache
       - vaultwarden_data:/data

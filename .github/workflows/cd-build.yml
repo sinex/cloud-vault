@@ -2,7 +2,9 @@ name: Deploy
 on:
   push:
     branches:
-      - deploy-test
+      - master
+      - deploy
+      - 'deploy-*'
 
 jobs:
 
@@ -64,5 +66,27 @@ jobs:
       - calculated_values
       - build
     if: startsWith(github.ref, 'refs/heads/deploy')
+    env:
+      IMAGE_TAG: ${{ needs.calculated_values.outputs.tree_sha }}
+      VAULT_HOSTNAME: vault
+      VAULT_DOMAIN: ${{ secrets.VAULT_DOMAIN }}
+      VAULT_ADMIN_EMAIL: ${{ secrets.VAULT_ADMIN_EMAIL }}
+      VAULT_ORG_NAME: ${{ secrets.VAULT_ORG_NAME }}
+      VAULT_SMTP_HOST: ${{ secrets.VAULT_SMTP_HOST }}
+      VAULT_SMTP_USERNAME: ${{ secrets.VAULT_SMTP_USERNAME }}
+      VAULT_SMTP_PASSWORD: ${{ secrets.VAULT_SMTP_PASSWORD }}
+      BORG_REPO: ${{ secrets.BORG_REPO }}
+      BORG_PASSPHRASE: ${{ secrets.BORG_PASSPHRASE }}
+      BORG_SSH_PRIVATE_KEY: ${{ secrets.BORG_SSH_PRIVATE_KEY }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+
     steps:
-      - run: echo "Deploying ${{ needs.calculated_values.outputs.tree_sha }}"
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/docker-compose-deploy
+        with:
+          ssh_host: ${{ secrets.DEPLOYER_USERNAME}}@${{ secrets.VAULT_DOMAIN }}
+          ssh_key: ${{ secrets.SSH_KEY }}
+          stack_name: vault
+          pull: true
+          build: true

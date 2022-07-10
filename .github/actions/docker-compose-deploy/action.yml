@@ -1,6 +1,6 @@
-name: docker-compose deployment
+name: Docker stack deployment
 author: Joshua Stover <josh@jstover.net>
-description: 'Deploy a docker-compose project to a remote server'
+description: 'Deploy a Docker swarm project to a remote server'
 inputs:
 
   ssh_host:
@@ -21,26 +21,6 @@ inputs:
 
   stack_name:
     description: Name to use for the compose stack
-    required: false
-
-  pull:
-    description: Run `docker pull` before deploying stack
-    required: false
-
-  force_recreate:
-    description: Run docker-compose with --force-recreate flag
-    required: false
-
-  build:
-    description: Run docker-compose with --build flag
-    required: false
-
-  compose_args:
-    description: Extra arguments to pass to `docker-compose`
-    required: false
-
-  up_args:
-    description: Extra arguments to pass to `docker-compose up`
     required: false
 
 runs:
