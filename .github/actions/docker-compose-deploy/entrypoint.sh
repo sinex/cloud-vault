@@ -27,9 +27,9 @@ docker context use remote
 
 docker stack deploy \
     --compose-file "${INPUT_STACK_FILE:-docker-compose.yml}" \
-    --with-registry-auth \
     "${INPUT_STACK_NAME:-stack}"
 
+#    --with-registry-auth \
 docker context use default
 docker context rm remote
 
