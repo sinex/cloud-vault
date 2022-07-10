@@ -1,6 +1,6 @@
 - name: Configure
   hosts: vault
-  become: yes
+  become: true
   tasks:
     - name: OS-specific configuration
       include_tasks: "configure.{{ ansible_facts['os_family'] | lower }}.yml"
@@ -24,15 +24,15 @@
         - debug
       ansible.posix.seboolean:
         name: nis_enabled
-        state: yes
-        persistent: yes
+        state: true
+        persistent: true
 
     - name: Enable docker service
       systemd:
-        daemon_reload: yes
+        daemon_reload: true
         name: docker
         state: started
-        enabled: yes
+        enabled: true
 
     - name: Initialise docker swarm
       tags:
@@ -65,7 +65,7 @@
         - docker
         - dind
       vars:
-        INGRESS_GATEWAY_IP_LIST: "{{ ansible_play_hosts | map('extract', hostvars, 'ingress_ip') | map(attribute='stdout') | map('trim') | join(' ') }}"
+        ingress_gateway_ip_list: "{{ ansible_play_hosts | map('extract', hostvars, 'ingress_ip') | map(attribute='stdout') | map('trim') | join(' ') }}"
       copy:
         dest: /etc/systemd/system/dind.service
         content: "{{ lookup('template', 'files/docker-ingress-routing-daemon/dind.service') }}"
@@ -79,14 +79,14 @@
         - docker
         - docker-secrets
       community.docker.docker_secret:
-        name: "{{ item }}"
-        data: "{{ lookup('vars', '{{ item }}') }}"
+        name: "{{ item.name }}"
+        data: "{{ lookup('vars', '{{ item.var }}') }}"
         state: present
       loop:
-        - BORG_REPO
-        - BORG_PASSPHRASE
-        - BORG_SSH_PRIVATE_KEY
-        - VAULTWARDEN_ENV
+        - {name: BORG_REPO, var: borg_repo }
+        - {name: BORG_PASSPHRASE, var: borg_passphrase }
+        - {name: BORG_SSH_PRIVATE_KEY, var: borg_ssh_private_key }
+        - {name: VAULTWARDEN_ENV, var: vaultwarden_env }
 
     - name: Configure docker secrets (file)
       tags:
@@ -119,10 +119,10 @@
       tags:
         - fail2ban
       systemd:
-        daemon_reload: yes
+        daemon_reload: true
         name: fail2ban
         state: started
-        enabled: yes
+        enabled: true
 
     - name: Configure fail2ban
       tags:
@@ -159,7 +159,7 @@
       copy:
         content: ""
         dest: /var/log/vaultwarden.log
-        force: no
+        force: false
         user: root
         group: root
         mode: '0640'
@@ -194,8 +194,8 @@
       systemd:
         name: fail2ban
         state: restarted
-        enabled: yes
-        daemon_reload: yes
+        enabled: true
+        daemon_reload: true
 
     - name: Restart rsyslog
       systemd:
@@ -206,5 +206,5 @@
       systemd:
         name: dind
         state: restarted
-        enabled: yes
-        daemon_reload: yes
+        enabled: true
+        daemon_reload: true

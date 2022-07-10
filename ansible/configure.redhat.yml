@@ -3,7 +3,7 @@
     name: docker-ce
     description: Docker CE Stable - $basearch
     baseurl: https://download.docker.com/linux/centos/$releasever/$basearch/stable
-    gpgcheck: yes
+    gpgcheck: true
     gpgkey: https://download.docker.com/linux/centos/gpg
 
 - name: Add OracleLinux 8 EPEL repository
@@ -17,11 +17,11 @@
     section: ol8_developer_EPEL
     option: enabled
     value: 1
-    no_extra_spaces: yes
+    no_extra_spaces: true
 
 - name: Remove cockpit
   yum:
     name:
       - cockpit
     state: absent
-    autoremove: yes
+    autoremove: true

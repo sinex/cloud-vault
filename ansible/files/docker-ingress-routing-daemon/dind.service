@@ -4,7 +4,7 @@ After=sysinit.target dockerd.service
 StartLimitIntervalSec=0
 
 [Service]
-ExecStart=/usr/local/bin/docker-ingress-routing-daemon --ingress-gateway-ips {{ INGRESS_GATEWAY_IP_LIST }} --install
+ExecStart=/usr/local/bin/docker-ingress-routing-daemon --ingress-gateway-ips {{ ingress_gateway_ip_list }} --install
 Restart=always
 
 [Install]

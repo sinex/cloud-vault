@@ -1,11 +1,11 @@
-BORG_REPO: "{{ lookup('env', 'BORG_REPO') }}"
+borg_repo: "{{ lookup('env', 'BORG_REPO') }}"
 
-BORG_PASSPHRASE: "{{ lookup('env', 'BORG_PASSPHRASE') }}"
+borg_passphrase: "{{ lookup('env', 'BORG_PASSPHRASE') }}"
 
-BORG_SSH_PRIVATE_KEY: "{{ lookup('env', 'BORG_SSH_PRIVATE_KEY') }}"
+borg_ssh_private_key: "{{ lookup('env', 'BORG_SSH_PRIVATE_KEY') }}"
 
-VAULTWARDEN_ENV: "{{ lookup('file', '../../vaultwarden.env') }}"
+vaultwarden_env: "{{ lookup('file', '../../vaultwarden.env') }}"
 
-CLOUDFLARE_ZONE_ID: "{{ lookup('env', 'CLOUDFLARE_ZONE_ID') }}"
+cloudflare_zone_id: "{{ lookup('env', 'CLOUDFLARE_ZONE_ID') }}"
 
-CLOUDFLARE_TOKEN: "{{ lookup('env', 'CLOUDFLARE_API_TOKEN') }}"
+cloudflare_token: "{{ lookup('env', 'CLOUDFLARE_API_TOKEN') }}"
