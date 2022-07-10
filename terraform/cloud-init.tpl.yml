@@ -17,3 +17,6 @@ users:
     ssh_authorized_keys:
       - ${deployer_public_key}
       - ${admin_public_key}
+
+runcmd:
+  - echo 'Provisioned by Terraform.' >> /etc/motd
