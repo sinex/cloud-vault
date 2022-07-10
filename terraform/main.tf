@@ -37,8 +37,12 @@ provider "cloudflare" {
 }
 
 
-output "instance_ip" {
-  value = data.oci_core_vnic.app_vnic.public_ip_address
+output "instance_ips" {
+  value = [for name, vnic in data.oci_core_vnic.app_vnic : vnic.public_ip_address]
+}
+
+output "primary_ip" {
+  value = data.oci_core_vnic.app_vnic["primary"].public_ip_address
 }
 
 output "deployer_username" {
