@@ -23,7 +23,7 @@ jobs:
     name: Fetch terraform outputs
     runs-on: ubuntu-latest
     outputs:
-      instance_ip: ${{ steps.tfc.outputs.instance_ip }}
+      primary_ip: ${{ steps.tfc.outputs.primary_ip }}
       deployer_username: ${{ steps.tfc.outputs.deployer_username }}
     steps:
       - uses: actions/checkout@v3
@@ -33,7 +33,7 @@ jobs:
           token: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
           org: ${{ secrets.TERRAFORM_CLOUD_ORG }}
           workspace: ${{ secrets.TERRAFORM_CLOUD_WORKSPACE }}
-          variables: deployer_username, instance_ip
+          variables: deployer_username, primary_ip
 
   clean:
     name: Delete old packages
@@ -112,7 +112,7 @@ jobs:
       - uses: ./.github/actions/docker-compose-deploy
         with:
           ssh_user: ${{ needs.terraform_outputs.outputs.deployer_username }}
-          ssh_host: ${{ needs.terraform_outputs.outputs.instance_ip }}
+          ssh_host: ${{ needs.terraform_outputs.outputs.primary_ip }}
           ssh_key: ${{ secrets.SSH_KEY }}
           stack_name: vault
           docker_registry: ghcr.io

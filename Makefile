@@ -44,12 +44,6 @@ $(TF_OUTPUTS):
 	fi
 
 
-debug: $(TF_OUTPUTS)
-	@set -x
-	DOCKER_HOST="ssh://$(call tf_output,deployer_username)@$(call tf_output,instance_ip)"
-	docker -H "$${DOCKER_HOST}" pull $(CONTAINER_REGISTRY_PREFIX)vault_borg:latest
-
-
 build-images: $(addprefix $(CONTAINER_REGISTRY_PREFIX),vault_borg vault_caddy)
 
 
@@ -99,7 +93,7 @@ app-configure: $(TF_OUTPUTS)
 
 app-deploy: $(TF_OUTPUTS)
 	@true
-	DOCKER_HOST="ssh://$(call tf_output,deployer_username)@$(call tf_output,instance_ip)"
+	DOCKER_HOST="ssh://$(call tf_output,deployer_username)@$(call tf_output,primary_ip)"
 	set -x
 	docker-compose -H "$${DOCKER_HOST}" pull
 	docker -H "$${DOCKER_HOST}" stack deploy --compose-file docker-compose.yml --with-registry-auth $(STACK_NAME)
@@ -112,7 +106,7 @@ app-deploy: $(TF_OUTPUTS)
 
 app-destroy: $(TF_OUTPUTS)
 	@true
-	DOCKER_HOST="ssh://$(call tf_output,deployer_username)@$(call tf_output,instance_ip)"
+	DOCKER_HOST="ssh://$(call tf_output,deployer_username)@$(call tf_output,primary_ip)"
 	( set -x ; docker -H "$${DOCKER_HOST}" stack rm $(STACK_NAME) )
 	printf '%s' 'Waiting for containers to be removed ...'
 	until [ -z "$$(docker -H "$${DOCKER_HOST}" stack ps $(STACK_NAME) -q 2>/dev/null)" ]; do printf '.'; sleep 1; done
@@ -121,12 +115,12 @@ app-destroy: $(TF_OUTPUTS)
 
 host-shell: $(TF_OUTPUTS)
 	@set -x
-	ssh "$(call tf_output,deployer_username)@$(call tf_output,instance_ip)"
+	ssh "$(call tf_output,deployer_username)@$(call tf_output,primary_ip)"
 
 
 borg-shell: $(TF_OUTPUTS)
 	@true
-	DOCKER_HOST="ssh://$(call tf_output,deployer_username)@$(call tf_output,instance_ip)"
+	DOCKER_HOST="ssh://$(call tf_output,deployer_username)@$(call tf_output,primary_ip)"
 	set -x
 	CONTAINER_ID=$$(docker -H "$${DOCKER_HOST}" ps --latest --filter name=$(STACK_NAME)_borg --format '{{ .ID }}')
 	if [ -n "$${CONTAINER_ID}" ]; then
@@ -139,7 +133,7 @@ borg-shell: $(TF_OUTPUTS)
 
 borg-backup: $(TF_OUTPUTS)
 	@true
-	DOCKER_HOST="ssh://$(call tf_output,deployer_username)@$(call tf_output,instance_ip)"
+	DOCKER_HOST="ssh://$(call tf_output,deployer_username)@$(call tf_output,primary_ip)"
 	set -x
 	CONTAINER_ID=$$(docker -H "$${DOCKER_HOST}" ps --latest --filter name=$(STACK_NAME)_borg --format '{{ .ID }}')
 	if [ -n "$${CONTAINER_ID}" ]; then
@@ -152,7 +146,7 @@ borg-backup: $(TF_OUTPUTS)
 
 vaultwarden-shell: $(TF_OUTPUTS)
 	@true
-	DOCKER_HOST="ssh://$(call tf_output,deployer_username)@$(call tf_output,instance_ip)"
+	DOCKER_HOST="ssh://$(call tf_output,deployer_username)@$(call tf_output,primary_ip)"
 	set -x
 	CONTAINER_ID=$$(docker -H "$${DOCKER_HOST}" ps --latest --filter name=$(STACK_NAME)_vaultwarden --format '{{ .ID }}')
 	if [ -n "$${CONTAINER_ID}" ]; then

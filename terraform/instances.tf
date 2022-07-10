@@ -1,7 +1,17 @@
-resource "oci_core_instance" "instance0" {
+locals {
+  instances = {
+    primary: {id: 0},
+  }
+
+}
+
+resource "oci_core_instance" "instances" {
+
+  for_each = local.instances
+
   availability_domain = data.oci_identity_availability_domain.ad.name
   compartment_id      = var.oci_compartment_ocid
-  display_name        = "${var.hostname}.${var.cloudflare_zone}"
+  display_name        = "${var.hostname}.${var.cloudflare_zone} (${each.value.id})"
   shape               = var.instance_shape
 
   shape_config {

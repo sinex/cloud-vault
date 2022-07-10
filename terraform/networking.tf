@@ -79,17 +79,20 @@ resource "oci_core_security_list" "test_security_list" {
 }
 
 data "oci_core_vnic_attachments" "app_vnics" {
+  for_each = local.instances
   compartment_id      = var.oci_compartment_ocid
   availability_domain = data.oci_identity_availability_domain.ad.name
-  instance_id         = oci_core_instance.instance0.id
+  instance_id         = oci_core_instance.instances[each.key].id
 }
 
 data "oci_core_vnic" "app_vnic" {
-  vnic_id = data.oci_core_vnic_attachments.app_vnics.vnic_attachments[0]["vnic_id"]
+  for_each = local.instances
+  vnic_id = data.oci_core_vnic_attachments.app_vnics[each.key].vnic_attachments[0]["vnic_id"]
 }
 
 data "oci_core_private_ips" "app_private_ips" {
-  vnic_id = data.oci_core_vnic.app_vnic.id
+  for_each = local.instances
+  vnic_id = data.oci_core_vnic.app_vnic[each.key].id
 }
 
 #resource "oci_core_public_ip" "app_public_ip" {
