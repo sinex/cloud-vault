@@ -19,9 +19,9 @@ jobs:
 
   testing:
     runs-on: ubuntu-latest
-    needs: tree_sha
+    needs: calculated_values
     steps:
-      - run: echo ${{ needs.calculated_values.outputs.tree_sha }}
+      - run: echo "${{ needs.calculated_values.outputs.tree_sha }}"
 
   clean:
     name: Delete old packages
