@@ -231,7 +231,9 @@ The application will be restarted without an `ADMIN_TOKEN` once again when confi
 make app-configure
 ```
 
-## Terraform Configuration
+## Github CD configuration
+
+CD workflow is defined in `.github/workflows/cd.yml` and is triggered by any branches which start with the string `deploy`
 
 Terraform must be configured to write Github action secrets.
 This requires a Personal Access Token with the `repo` scope and the name of the GitHub repository
@@ -243,35 +245,14 @@ github_repository = "cloud-vault"
 github_token      = "nCbZafeYI...Dvqrrhyv"
 ```
 
+There are also a number of GitHub secrets which need to be defined manually for the CD steps to operate correctly.
 
-
-## Github CD configuration
-
-There are a number of GitHub secrets which need to be defined manually for the CD steps to operate correctly.
-
-CD workflow is defined in `.github/workflows/cd.yml` and is triggered by any branches which start with the string `deploy`
 
 Note that some of these are not actually _secret_ variables, and so can be hardcoded into the workflow if desired.
 
-### GitHub Variables:
 | Name                  | Description                                              | Example                     |
 |-----------------------|----------------------------------------------------------|-----------------------------|
 | DELETE_PACKAGES_TOKEN | GitHub Personal Access Token with `package:delete` scope | XRVkVPBtljAlzl...CadIVthFw' |
-
-
-### Deployment Variables:
-
-| Name                      | Description                  | Example                          |
-|---------------------------|------------------------------|----------------------------------|
-| TERRAFORM_CLOUD_ORG       | Terraform Cloud organisation | myorg                            |
-| TERRAFORM_CLOUD_WORKSPACE | Terraform Cloud workspace    | myworkspace                      |
-| TERRAFORM_CLOUD_TOKEN     | Terraform Cloud access token | fWEnnKcESbnCaumKBxfFAjbfEFHmvvMf |
-
-
-### Application Secrets:
-
-| Name                 | Description                                                             | Example                                   |
-|----------------------|-------------------------------------------------------------------------|-------------------------------------------|
 | BORG_PASSPHRASE      | Passphrase for the borg backup repository                               | knflRaVmiWxpZpTFoCeBzPbUuvQYzJKQ          |
 | BORG_REPO            | Borg ackup repository path                                              | ssh://user@backups.example.com:22/./vault |
 | BORG_SSH_PRIVATE_KEY | Base64 encoded SSH private key for accessing borg repository            | jMmhBYlhWdFpXNE...EkFURSBLRVktLS0tLQo=    |
@@ -283,6 +264,11 @@ Note that some of these are not actually _secret_ variables, and so can be hardc
 | VAULT_SMTP_PASSWORD  | Vaultwarden SMTP password                                               | LQGXfQqqJYhXjLMY                          |
 | VAULT_SMTP_USERNAME  | Vaultwarden SMTP username                                               | user                                      |
 
+
+In addition, he following are automatically created/updated by Terraform:
+- `DEPLOYER_SSH_PRIVATE_KEY`
+- `DEPLOYER_USERNAME`
+- `PRIMARY_INSTANCE_IP`
 
 
 
