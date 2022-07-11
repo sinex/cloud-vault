@@ -18,13 +18,13 @@ EOF
 cloudflare_api_token = "..."
 
 # Zone where DNS records will be created
-cloudflare_zone      = "example.com"
+cloudflare_zone = "example.com"
 
 
 # Cloudflare config
 # ----------------------------------------------------------------------------
 github_repository = "cloud-vault"
-github_token = ""
+github_token      = ""
 
 
 # Host config
