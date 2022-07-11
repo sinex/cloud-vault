@@ -21,6 +21,12 @@ cloudflare_api_token = "..."
 cloudflare_zone      = "example.com"
 
 
+# Cloudflare config
+# ----------------------------------------------------------------------------
+github_repository = "cloud-vault"
+github_token = ""
+
+
 # Host config
 # ----------------------------------------------------------------------------
 

@@ -31,6 +31,17 @@ variable "cloudflare_zone" {
   type = string
 }
 
+# GitHub config
+# ----------------------------------------------------------------------------
+
+variable "github_repository" {
+  type = string
+}
+
+variable "github_token" {
+  type = string
+}
+
 # Host config
 # ----------------------------------------------------------------------------
 
