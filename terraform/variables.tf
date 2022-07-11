@@ -49,11 +49,7 @@ variable "admin_username" {
   default = "admin"
 }
 
-variable "admin_public_key" {
-  type = string
-}
-
-variable "deployer_public_key" {
+variable "admin_ssh_public_key" {
   type = string
 }
 

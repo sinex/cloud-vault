@@ -33,13 +33,8 @@ deployer_username = "deployer"
 # Username for the sudo-enabled admin user
 admin_username = "admin"
 
-# SSH public key used for the 'admin' account on the instance.
-# This account will have sudo privileges without requiring a password
-admin_public_key = "ssh-ed25519 AAAAC..."
-
-# SSH public key used for the 'deployer' account on the instance
-# This account will have the ability to administer docker
-deployer_public_key = "ssh-rsa AAAAB..."
+# User-provided SSH public key. Will be used for both the 'admin' and 'deployer' accounts
+admin_ssh_public_key = "ssh-ed25519 AAAAC..."
 
 
 # Instance config
