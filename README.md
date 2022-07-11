@@ -1,6 +1,7 @@
 # cloud-vault
 
 [![Linter Checks](https://github.com/sinex/cloud-vault/actions/workflows/ci-lint-checks.yml/badge.svg?branch=master)](https://github.com/sinex/cloud-vault/actions/workflows/ci-lint-checks.yml)
+[![Deploy](https://github.com/sinex/cloud-vault/actions/workflows/cd.yml/badge.svg?branch=deploy)](https://github.com/sinex/cloud-vault/actions/workflows/cd.yml)
 
 
 Automated deployment of Vaultwarden to Oracle Cloud Infrastructure
@@ -230,11 +231,60 @@ The application will be restarted without an `ADMIN_TOKEN` once again when confi
 make app-configure
 ```
 
+## Terraform Configuration
+
+Terraform must be configured to write Github action secrets.
+This requires a Personal Access Token with the `repo` scope and the name of the GitHub repository
+
+Define these variables locally or in Terraform Cloud:
+```terraform
+# terraform.tfvars
+github_repository = "cloud-vault"
+github_token      = "nCbZafeYI...Dvqrrhyv"
+```
+
+
 
 ## Github CD configuration
 
-Github CD is currently outdated. this section will be updated when it's been fixed:  
-https://github.com/sinex/cloud-vault/issues/5
+There are a number of GitHub secrets which need to be defined manually for the CD steps to operate correctly.
+
+CD workflow is defined in `.github/workflows/cd.yml` and is triggered by any branches which start with the string `deploy`
+
+Note that some of these are not actually _secret_ variables, and so can be hardcoded into the workflow if desired.
+
+### GitHub Variables:
+| Name                  | Description                                              | Example                     |
+|-----------------------|----------------------------------------------------------|-----------------------------|
+| DELETE_PACKAGES_TOKEN | GitHub Personal Access Token with `package:delete` scope | XRVkVPBtljAlzl...CadIVthFw' |
+
+
+### Deployment Variables:
+
+| Name                      | Description                  | Example                          |
+|---------------------------|------------------------------|----------------------------------|
+| TERRAFORM_CLOUD_ORG       | Terraform Cloud organisation | myorg                            |
+| TERRAFORM_CLOUD_WORKSPACE | Terraform Cloud workspace    | myworkspace                      |
+| TERRAFORM_CLOUD_TOKEN     | Terraform Cloud access token | fWEnnKcESbnCaumKBxfFAjbfEFHmvvMf |
+
+
+### Application Secrets:
+
+| Name                 | Description                                                             | Example                                   |
+|----------------------|-------------------------------------------------------------------------|-------------------------------------------|
+| BORG_PASSPHRASE      | Passphrase for the borg backup repository                               | knflRaVmiWxpZpTFoCeBzPbUuvQYzJKQ          |
+| BORG_REPO            | Borg ackup repository path                                              | ssh://user@backups.example.com:22/./vault |
+| BORG_SSH_PRIVATE_KEY | Base64 encoded SSH private key for accessing borg repository            | jMmhBYlhWdFpXNE...EkFURSBLRVktLS0tLQo=    |
+| VAULT_ADMIN_EMAIL    | Email address for LetsEncrypt registration and Vaultwarden invites      | admin@example.com                         |
+| VAULT_DOMAIN         | Domain name for DNS records                                             | example.com                               |
+| VAULT_HOSTNAME       | Email address used for LetsEncrypt registration and Vaultwarden invites | vault                                     |
+| VAULT_ORG_NAME       | Vaultwarden organisation name                                           | Vaultwarden                               |
+| VAULT_SMTP_HOST      | Vaultwarden SMTP Host                                                   | mail.example.com                          |
+| VAULT_SMTP_PASSWORD  | Vaultwarden SMTP password                                               | LQGXfQqqJYhXjLMY                          |
+| VAULT_SMTP_USERNAME  | Vaultwarden SMTP username                                               | user                                      |
+
+
+
 
 
 ## All make targets
