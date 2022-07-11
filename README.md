@@ -9,9 +9,25 @@ Automated deployment of Vaultwarden to Oracle Cloud Infrastructure
 
 Features:
 
-- Provisioning of Always-Free tier OCI resources
 - Vaultwarden instance behind a Caddy proxy
+- Automatic Cloudflare DNS records
+- Cloudflare-integrated fail2ban
+- Provisioned on Always-Free tier OCI resources
 - Backups to an existing borg repository
+
+
+## Requirements
+
+- Github
+  - Personal Access Token with `write:packages` scope (for pushing images)
+  - Personal Access Token with `delete:packages` scope (for CI image cleanup)
+  - Personal Access Token with `repo` scope (for Terraform to add secrets)
+- Cloudflare
+  - API Token with `Zone.DNS` scope (for Terraform to add DNS records)
+  - API Token with `Firewall Services:Edit` and `Firewall Services:Read` scope (for fail2ban)
+- Terraform Cloud
+  - API Token (to plan/apply executions)
+- SSH Key for use with Ansible and administrative actions
 
 
 ## Configuration
@@ -52,7 +68,6 @@ It is recommended that the sensitive values are defined there instead of within 
 # terraform/terraform.tfvars
 
 # OCI config
-# ----------------------------------------------------------------------------
 oci_tenancy_ocid     = "ocid1.tenancy.oc1.."
 oci_user_ocid        = "ocid1.user.oc1.."
 oci_compartment_ocid = "ocid1.tenancy.oc1.."
@@ -63,42 +78,23 @@ oci_api_private_key  = <<EOF
 -----END RSA PRIVATE KEY-----
 EOF
 
-
-# Cloudflare config
-# ----------------------------------------------------------------------------
+# API Token with Zone.DNS scope
 cloudflare_api_token = "..."
+
+# Domain zone where DNS records will be created
 cloudflare_zone      = "example.com"
 
+# Name of the repository hosting this code
+github_repository = "cloud-vault"
 
-# Host config
-# ----------------------------------------------------------------------------
+# Personal Access Token with "repo" scope
+github_token      = ""
 
-# Hostname for the instance and DNS A record
-hostname = "vault"
-
-# Username for the user used for app deployment
-deployer_username = "deployer"
-
-# Username for the sudo-enabled admin user
-admin_username = "admin"
-
-# SSH public key used for the 'admin' account on the instance.
-# This account will have sudo privileges without requiring a password
-admin_public_key = "ssh-ed25519 AAAAC..."
-
-# SSH public key used for the 'deployer' account on the instance
-# This account will have the ability to administer docker
-deployer_public_key = "ssh-rsa AAAAB..."
-
-
-# Instance config
-# ----------------------------------------------------------------------------
-region              = "ap-sydney-1"
-instance_shape      = "VM.Standard.E2.1.Micro"
-instance_ocpus      = 1
-instance_memory_gb  = 1
-boot_volume_size_gb = 50
+# User-provided SSH public key. Will be used for both the 'admin' and 'deployer' accounts
+admin_ssh_public_key = "ssh-ed25519 AAAAC..."
 ```
+
+_See `terraform/terraform.tfvars.example` for a description of all available configuration options_
 
 ### Application configuration
 
@@ -181,6 +177,9 @@ VAULT_SMTP_SECURITY=starttls
 VAULT_SMTP_USERNAME=username
 VAULT_SMTP_PASSWORD=password
 ```
+
+
+_See `.env.example` for a description of all availabl eenvironment variables_
 
 
 ## Deployment
