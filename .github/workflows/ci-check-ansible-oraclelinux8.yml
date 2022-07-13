@@ -1,15 +1,13 @@
-name: Check Ansible on CentOS 8
+name: Check Ansible on OracleLinux 8
 
 on: [push, pull_request]
 
 jobs:
-  build:
+  ansible-check:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
-
-        # optionally replace "master" with any valid git ref
       - uses: ./.github/actions/check-ansible-oraclelinux8-action
         with:
           targets: ./ansible/configure.yml

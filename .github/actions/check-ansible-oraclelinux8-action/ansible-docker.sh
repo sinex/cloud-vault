@@ -70,7 +70,6 @@ EOF
 }
 
 # make sure git is up to date
-ansible --version
 git submodule update --init --recursive
 if [[ "${REQUIREMENTS}" == *.yml ]]
 then
