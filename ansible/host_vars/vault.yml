@@ -1,11 +1,23 @@
+# fail2ban variables
+fail2ban_cloudflare_zone_id: "{{ lookup('env', 'CLOUDFLARE_ZONE_ID') }}"
+fail2ban_cloudflare_token: "{{ lookup('env', 'CLOUDFLARE_API_TOKEN') }}"
+
+# Borg variables
 borg_repo: "{{ lookup('env', 'BORG_REPO') }}"
-
 borg_passphrase: "{{ lookup('env', 'BORG_PASSPHRASE') }}"
-
 borg_ssh_private_key: "{{ lookup('env', 'BORG_SSH_PRIVATE_KEY') }}"
 
-vaultwarden_env: "{{ lookup('file', '../../vaultwarden.env') }}"
+# Vaultwarden .env file variables
+vault_domain: "{{ lookup('env', 'FQDN') }}"
+vault_org_name: "{{ lookup('env', 'VAULT_ORG_NAME') or 'Vaultwarden' }}"
+vault_smtp_host: "{{ lookup('env', 'VAULT_SMTP_HOST') }}"
+vault_smtp_port: "{{ lookup('env', 'VAULT_SMTP_PORT') }}"
+vault_smtp_security: "{{ lookup('env', 'VAULT_SMTP_SECURITY') }}"
+vault_smtp_username: "{{ lookup('env', 'VAULT_SMTP_USERNAME') }}"
+vault_smtp_password: "{{ lookup('env', 'VAULT_SMTP_PASSWORD') }}"
+vault_admin_email: "{{ lookup('env', 'VAULT_ADMIN_EMAIL') }}"
+vaultwarden_env: "{{ lookup('template', 'files/vaultwarden.env') }}"
 
-cloudflare_zone_id: "{{ lookup('env', 'CLOUDFLARE_ZONE_ID') }}"
-
-cloudflare_token: "{{ lookup('env', 'CLOUDFLARE_API_TOKEN') }}"
+# Caddy variables
+caddy_domain: "https://{{ lookup('env', 'FQDN') }}"
+caddy_email: "{{ lookup('env', 'VAULT_ADMIN_EMAIL') }}"
