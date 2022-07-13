@@ -18,7 +18,13 @@ EOF
 cloudflare_api_token = "..."
 
 # Zone where DNS records will be created
-cloudflare_zone      = "example.com"
+cloudflare_zone = "example.com"
+
+
+# GitHub config
+# ----------------------------------------------------------------------------
+github_repository = "cloud-vault"
+github_token      = ""
 
 
 # Host config
@@ -33,13 +39,8 @@ deployer_username = "deployer"
 # Username for the sudo-enabled admin user
 admin_username = "admin"
 
-# SSH public key used for the 'admin' account on the instance.
-# This account will have sudo privileges without requiring a password
-admin_public_key = "ssh-ed25519 AAAAC..."
-
-# SSH public key used for the 'deployer' account on the instance
-# This account will have the ability to administer docker
-deployer_public_key = "ssh-rsa AAAAB..."
+# User-provided SSH public key. Will be used for both the 'admin' and 'deployer' accounts
+admin_ssh_public_key = "ssh-ed25519 AAAAC..."
 
 
 # Instance config

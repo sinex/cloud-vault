@@ -15,8 +15,6 @@
           - fail2ban
 
     - name: Configure SELinux
-      tags:
-        - debug
       ansible.posix.seboolean:
         name: nis_enabled
         state: true
@@ -69,7 +67,7 @@
         mode: '0644'
       notify: Restart dind
 
-    - name: Configure docker secrets (vars)
+    - name: Configure docker secrets
       tags:
         - docker
         - docker-secrets
@@ -78,22 +76,13 @@
         data: "{{ lookup('vars', '{{ item.var }}') }}"
         state: present
       loop:
-        - {name: BORG_REPO, var: borg_repo }
-        - {name: BORG_PASSPHRASE, var: borg_passphrase }
-        - {name: BORG_SSH_PRIVATE_KEY, var: borg_ssh_private_key }
-        - {name: VAULTWARDEN_ENV, var: vaultwarden_env }
+        - { name: BORG_REPO, var: borg_repo }
+        - { name: BORG_PASSPHRASE, var: borg_passphrase }
+        - { name: BORG_SSH_PRIVATE_KEY, var: borg_ssh_private_key }
+        - { name: VAULTWARDEN_ENV, var: vaultwarden_env }
+        - { name: CADDY_DOMAIN, var: caddy_domain }
+        - { name: CADDY_EMAIL, var: caddy_email }
 
-    - name: Configure docker secrets (file)
-      tags:
-        - docker
-        - docker-secrets
-      community.docker.docker_secret:
-        name: "{{ item.name }}"
-        data: "{{ lookup('file', '{{ item.file }}') | b64encode }}"
-        data_is_b64: true
-        state: present
-      loop:
-        - { name: "VAULTWARDEN_SECRET_ENV", file: "../../vaultwarden.env" }
 
     - name: Configure SSH server daemon
       lineinfile:

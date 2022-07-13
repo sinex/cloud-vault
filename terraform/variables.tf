@@ -31,6 +31,17 @@ variable "cloudflare_zone" {
   type = string
 }
 
+# GitHub config
+# ----------------------------------------------------------------------------
+
+variable "github_repository" {
+  type = string
+}
+
+variable "github_token" {
+  type = string
+}
+
 # Host config
 # ----------------------------------------------------------------------------
 
@@ -49,11 +60,7 @@ variable "admin_username" {
   default = "admin"
 }
 
-variable "admin_public_key" {
-  type = string
-}
-
-variable "deployer_public_key" {
+variable "admin_ssh_public_key" {
   type = string
 }
 

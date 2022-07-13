@@ -1,7 +1,7 @@
 .ONESHELL:
 .SHELLFLAGS= -ec
 
-STACK_NAME   := vault
+STACK_NAME   ?= vault
 
 CWD          := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 TF_OUTPUTS   := $(CWD)/terraform/.terraform/outputs.json
@@ -115,7 +115,7 @@ app-destroy: $(TF_OUTPUTS)
 
 host-shell: $(TF_OUTPUTS)
 	@set -x
-	ssh "$(call tf_output,deployer_username)@$(call tf_output,primary_ip)"
+	ssh "$(call tf_output,admin_username)@$(call tf_output,primary_ip)"
 
 
 borg-shell: $(TF_OUTPUTS)

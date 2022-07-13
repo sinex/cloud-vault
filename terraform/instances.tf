@@ -35,7 +35,7 @@ resource "oci_core_instance" "instances" {
   }
 
   metadata = {
-    ssh_authorized_keys = var.admin_public_key
+    ssh_authorized_keys = var.admin_ssh_public_key
     user_data           = base64encode(data.template_file.cloud-init.rendered)
   }
 
@@ -56,8 +56,8 @@ data "template_file" "cloud-init" {
   template = file("cloud-init.tpl.yml")
   vars = {
     deployer_username   = var.deployer_username
-    deployer_public_key = var.deployer_public_key
+    deployer_public_key = tls_private_key.deployer.public_key_openssh
     admin_username      = var.admin_username
-    admin_public_key    = var.admin_public_key
+    admin_public_key    = var.admin_ssh_public_key
   }
 }
