@@ -55,6 +55,9 @@ TF_WORKSPACE=
 
 # Registry prefix for docker containers
 CONTAINER_REGISTRY=ghcr.io/username
+
+# Name of the Docker stack for the running services
+STACK_NAME=vault
 ```
 
 ### Infrastructure configuration
@@ -98,18 +101,30 @@ _See `terraform/terraform.tfvars.example` for a description of all available con
 
 ### Application configuration
 
-These values control the settings for both the `vaultwarden` and `caddy` containers
 ```shell
 # .env
 
 # FQDN for the deployed instance
-VAULT_DOMAIN=vault.example.com
+FQDN=vault.example.com
 
 # Email address for LetsEncrypt registration and Vaultwarden invite sending
 VAULT_ADMIN_EMAIL=admin@example.com
 
 # Organisation name to use in vaultwarden
 VAULT_ORG_NAME=Vaultwarden
+
+# Vaultwarden SMTP settings
+VAULT_SMTP_HOST=localhost
+VAULT_SMTP_PORT=587
+VAULT_SMTP_SECURITY=starttls
+VAULT_SMTP_USERNAME=username
+VAULT_SMTP_PASSWORD=password
+
+# Cloudflare Token for fail2ban (requires "Zone.Firewall Services" scope)
+CLOUDFLARE_API_TOKEN=
+
+# Cloudflare Zone ID where firewalls rules ill be created
+CLOUDFLARE_ZONE_ID=
 ```
 
 ### Backup configuration
@@ -154,32 +169,13 @@ Example borg configuration:
 BORG_REPO=ssh://user@backups.example.com:22/./vault
 
 # Plain text passphrase for the borg repo.
-BORG_PASSPHRASE=cXfddDb1TOhK7hGg/1m8FmlUzC8Z+yrnxkuWw3E9004=
+BORG_PASSPHRASE=cXfddDb1TOhK...nxkuWw3E9004=
 
 # Base64 encoded SSH private key used to connect to borg remote
-BORG_SSH_PRIVATE_KEY=LS0tLS1CRUdJTiBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0KYjNCbGJuTnphQzFyWlhrdGRqRUFBQUFBQkc1dmJtVUFBQUFFYm05dVpRQUFBQUFBQUFBQkFBQUFNd0FBQUF0emMyZ3RaVwpReU5UVXhPUUFBQUNDS0JjRCtGcmpvN0k3L1VaZXdJVHhnaVlZZHRLZjUwaFZtajRHZjRFQ0ZrUUFBQUpDbjhxdUhwL0tyCmh3QUFBQXR6YzJndFpXUXlOVFV4T1FBQUFDQ0tCY0QrRnJqbzdJNy9VWmV3SVR4Z2lZWWR0S2Y1MGhWbWo0R2Y0RUNGa1EKQUFBRUJUY2hJem1yR3NPYTdWTG9RL2VuMnZIdXFYcGRMTU02YXpVS09JcnZMR3VJb0Z3UDRXdU9qc2p2OVJsN0FoUEdDSgpoaDIwcC9uU0ZXYVBnWi9nUUlXUkFBQUFDbUp2Y21kQWRtRjFiSFFCQWdNPQotLS0tLUVORCBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0K
+BORG_SSH_PRIVATE_KEY=LS0tLS1CRUdJTiBPUEVOU1NII...ZXPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0K
 ```
 
-
-### Vaultwarden secrets
-
-Some Vaultwarden variables contain sensitive information, such as SMTP passwords and YubiKey API Keys.
-These should be defined in `vaultwarden.env` instead of environment variables in the container.
-
-This file will be mounted into the container where Vaultwarden will read the values.
-Any supported Vaultwarden configuration options can be defined here, not just the sensitive ones.
-
-```shell
-# vaultwarden.env
-VAULT_SMTP_HOST=localhost
-VAULT_SMTP_PORT=587
-VAULT_SMTP_SECURITY=starttls
-VAULT_SMTP_USERNAME=username
-VAULT_SMTP_PASSWORD=password
-```
-
-
-_See `.env.example` for a description of all availabl eenvironment variables_
+_See `.env.example` for a description of all available environment variables_
 
 
 ## Deployment
@@ -232,10 +228,16 @@ make app-configure
 
 ## Github CD configuration
 
-CD workflow is defined in `.github/workflows/cd.yml` and is triggered by any branches which start with the string `deploy`
+There are two CD workflows:
+- `cd-build.yml` is executed on push to `master`
+- `cd-deploy.yml` is additionally executed on push to and branch starting with `deploy-`
 
-Terraform must be configured to write Github action secrets.
-This requires a Personal Access Token with the `repo` scope and the name of the GitHub repository
+
+There are two GitHub tokens which are required for deployment to succeed:
+
+### 1. Token with `repo` scope
+
+Terraform requires this in order to write GitHub action secrets.
 
 Define these variables locally or in Terraform Cloud:
 ```terraform
@@ -244,31 +246,20 @@ github_repository = "cloud-vault"
 github_token      = "nCbZafeYI...Dvqrrhyv"
 ```
 
-There are also a number of GitHub secrets which need to be defined manually for the CD steps to operate correctly.
+### 2. Token with `delete:package` scope
 
+The build action requires this in order to delete old containers from the registry
 
-Note that some of these are not actually _secret_ variables, and so can be hardcoded into the workflow if desired.
+Define the following GitHub Secret with the value of the token:
 
-| Name                  | Description                                              | Example                     |
-|-----------------------|----------------------------------------------------------|-----------------------------|
-| DELETE_PACKAGES_TOKEN | GitHub Personal Access Token with `package:delete` scope | XRVkVPBtljAlzl...CadIVthFw' |
-| BORG_PASSPHRASE      | Passphrase for the borg backup repository                               | knflRaVmiWxpZpTFoCeBzPbUuvQYzJKQ          |
-| BORG_REPO            | Borg ackup repository path                                              | ssh://user@backups.example.com:22/./vault |
-| BORG_SSH_PRIVATE_KEY | Base64 encoded SSH private key for accessing borg repository            | jMmhBYlhWdFpXNE...EkFURSBLRVktLS0tLQo=    |
-| VAULT_ADMIN_EMAIL    | Email address for LetsEncrypt registration and Vaultwarden invites      | admin@example.com                         |
-| VAULT_DOMAIN         | Domain name for DNS records                                             | example.com                               |
-| VAULT_HOSTNAME       | Email address used for LetsEncrypt registration and Vaultwarden invites | vault                                     |
-| VAULT_ORG_NAME       | Vaultwarden organisation name                                           | Vaultwarden                               |
-| VAULT_SMTP_HOST      | Vaultwarden SMTP Host                                                   | mail.example.com                          |
-| VAULT_SMTP_PASSWORD  | Vaultwarden SMTP password                                               | LQGXfQqqJYhXjLMY                          |
-| VAULT_SMTP_USERNAME  | Vaultwarden SMTP username                                               | user                                      |
+- `DELETE_PACKAGES_TOKEN`
 
+### Automatic Secrets 
 
-In addition, he following are automatically created/updated by Terraform:
+The following are automatically created/updated by Terraform:
 - `DEPLOYER_SSH_PRIVATE_KEY`
 - `DEPLOYER_USERNAME`
 - `PRIMARY_INSTANCE_IP`
-
 
 
 
