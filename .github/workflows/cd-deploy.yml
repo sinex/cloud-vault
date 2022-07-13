@@ -5,6 +5,17 @@ on:
       - 'deploy-*'
 
 jobs:
+
+  calculated_values:
+    name: Calculated values for other jobs
+    runs-on: ubuntu-latest
+    outputs:
+      tree_sha: ${{ steps.tree_sha.outputs.value }}
+    steps:
+      - uses: actions/checkout@v3
+      - id: tree_sha
+        run: echo "::set-output name=value::$(git rev-parse HEAD:)"
+
   build:
     uses: ./.github/workflows/cd-build.yml
 
