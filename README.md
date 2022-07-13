@@ -1,6 +1,7 @@
 # cloud-vault
 
 [![Linter Checks](https://github.com/sinex/cloud-vault/actions/workflows/ci-lint-checks.yml/badge.svg?branch=master)](https://github.com/sinex/cloud-vault/actions/workflows/ci-lint-checks.yml)
+[![Deploy](https://github.com/sinex/cloud-vault/actions/workflows/cd.yml/badge.svg?branch=deploy)](https://github.com/sinex/cloud-vault/actions/workflows/cd.yml)
 
 
 Automated deployment of Vaultwarden to Oracle Cloud Infrastructure
@@ -8,9 +9,25 @@ Automated deployment of Vaultwarden to Oracle Cloud Infrastructure
 
 Features:
 
-- Provisioning of Always-Free tier OCI resources
 - Vaultwarden instance behind a Caddy proxy
+- Automatic Cloudflare DNS records
+- Cloudflare-integrated fail2ban
+- Provisioned on Always-Free tier OCI resources
 - Backups to an existing borg repository
+
+
+## Requirements
+
+- Github
+  - Personal Access Token with `write:packages` scope (for pushing images)
+  - Personal Access Token with `delete:packages` scope (for CI image cleanup)
+  - Personal Access Token with `repo` scope (for Terraform to add secrets)
+- Cloudflare
+  - API Token with `Zone.DNS` scope (for Terraform to add DNS records)
+  - API Token with `Firewall Services:Edit` and `Firewall Services:Read` scope (for fail2ban)
+- Terraform Cloud
+  - API Token (to plan/apply executions)
+- SSH Key for use with Ansible and administrative actions
 
 
 ## Configuration
@@ -38,6 +55,9 @@ TF_WORKSPACE=
 
 # Registry prefix for docker containers
 CONTAINER_REGISTRY=ghcr.io/username
+
+# Name of the Docker stack for the running services
+STACK_NAME=vault
 ```
 
 ### Infrastructure configuration
@@ -51,7 +71,6 @@ It is recommended that the sensitive values are defined there instead of within 
 # terraform/terraform.tfvars
 
 # OCI config
-# ----------------------------------------------------------------------------
 oci_tenancy_ocid     = "ocid1.tenancy.oc1.."
 oci_user_ocid        = "ocid1.user.oc1.."
 oci_compartment_ocid = "ocid1.tenancy.oc1.."
@@ -62,57 +81,50 @@ oci_api_private_key  = <<EOF
 -----END RSA PRIVATE KEY-----
 EOF
 
-
-# Cloudflare config
-# ----------------------------------------------------------------------------
+# API Token with Zone.DNS scope
 cloudflare_api_token = "..."
+
+# Domain zone where DNS records will be created
 cloudflare_zone      = "example.com"
 
+# Name of the repository hosting this code
+github_repository = "cloud-vault"
 
-# Host config
-# ----------------------------------------------------------------------------
+# Personal Access Token with "repo" scope
+github_token      = ""
 
-# Hostname for the instance and DNS A record
-hostname = "vault"
-
-# Username for the user used for app deployment
-deployer_username = "deployer"
-
-# Username for the sudo-enabled admin user
-admin_username = "admin"
-
-# SSH public key used for the 'admin' account on the instance.
-# This account will have sudo privileges without requiring a password
-admin_public_key = "ssh-ed25519 AAAAC..."
-
-# SSH public key used for the 'deployer' account on the instance
-# This account will have the ability to administer docker
-deployer_public_key = "ssh-rsa AAAAB..."
-
-
-# Instance config
-# ----------------------------------------------------------------------------
-region              = "ap-sydney-1"
-instance_shape      = "VM.Standard.E2.1.Micro"
-instance_ocpus      = 1
-instance_memory_gb  = 1
-boot_volume_size_gb = 50
+# User-provided SSH public key. Will be used for both the 'admin' and 'deployer' accounts
+admin_ssh_public_key = "ssh-ed25519 AAAAC..."
 ```
+
+_See `terraform/terraform.tfvars.example` for a description of all available configuration options_
 
 ### Application configuration
 
-These values control the settings for both the `vaultwarden` and `caddy` containers
 ```shell
 # .env
 
 # FQDN for the deployed instance
-VAULT_DOMAIN=vault.example.com
+FQDN=vault.example.com
 
 # Email address for LetsEncrypt registration and Vaultwarden invite sending
 VAULT_ADMIN_EMAIL=admin@example.com
 
 # Organisation name to use in vaultwarden
 VAULT_ORG_NAME=Vaultwarden
+
+# Vaultwarden SMTP settings
+VAULT_SMTP_HOST=localhost
+VAULT_SMTP_PORT=587
+VAULT_SMTP_SECURITY=starttls
+VAULT_SMTP_USERNAME=username
+VAULT_SMTP_PASSWORD=password
+
+# Cloudflare Token for fail2ban (requires "Zone.Firewall Services" scope)
+CLOUDFLARE_API_TOKEN=
+
+# Cloudflare Zone ID where firewalls rules ill be created
+CLOUDFLARE_ZONE_ID=
 ```
 
 ### Backup configuration
@@ -157,29 +169,13 @@ Example borg configuration:
 BORG_REPO=ssh://user@backups.example.com:22/./vault
 
 # Plain text passphrase for the borg repo.
-BORG_PASSPHRASE=cXfddDb1TOhK7hGg/1m8FmlUzC8Z+yrnxkuWw3E9004=
+BORG_PASSPHRASE=cXfddDb1TOhK...nxkuWw3E9004=
 
 # Base64 encoded SSH private key used to connect to borg remote
-BORG_SSH_PRIVATE_KEY=LS0tLS1CRUdJTiBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0KYjNCbGJuTnphQzFyWlhrdGRqRUFBQUFBQkc1dmJtVUFBQUFFYm05dVpRQUFBQUFBQUFBQkFBQUFNd0FBQUF0emMyZ3RaVwpReU5UVXhPUUFBQUNDS0JjRCtGcmpvN0k3L1VaZXdJVHhnaVlZZHRLZjUwaFZtajRHZjRFQ0ZrUUFBQUpDbjhxdUhwL0tyCmh3QUFBQXR6YzJndFpXUXlOVFV4T1FBQUFDQ0tCY0QrRnJqbzdJNy9VWmV3SVR4Z2lZWWR0S2Y1MGhWbWo0R2Y0RUNGa1EKQUFBRUJUY2hJem1yR3NPYTdWTG9RL2VuMnZIdXFYcGRMTU02YXpVS09JcnZMR3VJb0Z3UDRXdU9qc2p2OVJsN0FoUEdDSgpoaDIwcC9uU0ZXYVBnWi9nUUlXUkFBQUFDbUp2Y21kQWRtRjFiSFFCQWdNPQotLS0tLUVORCBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0K
+BORG_SSH_PRIVATE_KEY=LS0tLS1CRUdJTiBPUEVOU1NII...ZXPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0K
 ```
 
-
-### Vaultwarden secrets
-
-Some Vaultwarden variables contain sensitive information, such as SMTP passwords and YubiKey API Keys.
-These should be defined in `vaultwarden.env` instead of environment variables in the container.
-
-This file will be mounted into the container where Vaultwarden will read the values.
-Any supported Vaultwarden configuration options can be defined here, not just the sensitive ones.
-
-```shell
-# vaultwarden.env
-VAULT_SMTP_HOST=localhost
-VAULT_SMTP_PORT=587
-VAULT_SMTP_SECURITY=starttls
-VAULT_SMTP_USERNAME=username
-VAULT_SMTP_PASSWORD=password
-```
+_See `.env.example` for a description of all available environment variables_
 
 
 ## Deployment
@@ -230,11 +226,41 @@ The application will be restarted without an `ADMIN_TOKEN` once again when confi
 make app-configure
 ```
 
-
 ## Github CD configuration
 
-Github CD is currently outdated. this section will be updated when it's been fixed:  
-https://github.com/sinex/cloud-vault/issues/5
+There are two CD workflows:
+- `cd-build.yml` is executed on push to `master`
+- `cd-deploy.yml` is additionally executed on push to and branch starting with `deploy-`
+
+
+There are two GitHub tokens which are required for deployment to succeed:
+
+### 1. Token with `repo` scope
+
+Terraform requires this in order to write GitHub action secrets.
+
+Define these variables locally or in Terraform Cloud:
+```terraform
+# terraform.tfvars
+github_repository = "cloud-vault"
+github_token      = "nCbZafeYI...Dvqrrhyv"
+```
+
+### 2. Token with `delete:package` scope
+
+The build action requires this in order to delete old containers from the registry
+
+Define the following GitHub Secret with the value of the token:
+
+- `DELETE_PACKAGES_TOKEN`
+
+### Automatic Secrets 
+
+The following are automatically created/updated by Terraform:
+- `DEPLOYER_SSH_PRIVATE_KEY`
+- `DEPLOYER_USERNAME`
+- `PRIMARY_INSTANCE_IP`
+
 
 
 ## All make targets
