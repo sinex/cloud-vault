@@ -1,0 +1,38 @@
+on:
+  push:
+    branches:
+      - deploy
+      - 'deploy-*'
+
+jobs:
+  build:
+    uses: ./github/workflows/cd-build.yml
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs:
+      - calculated_values
+      - build
+    if: startsWith(github.ref, 'refs/heads/deploy')
+    env:
+      CONTAINER_REGISTRY: ghcr.io
+      IMAGE_TAG: ${{ needs.calculated_values.outputs.tree_sha }}
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: ./.github/actions/docker-compose-deploy
+        with:
+          ssh_user: ${{ secrets.DEPLOYER_USERNAME }}
+          ssh_host: ${{ secrets.PRIMARY_INSTANCE_IP }}
+          ssh_key: ${{ secrets.DEPLOYER_SSH_PRIVATE_KEY }}
+          stack_name: vault
+          docker_registry: ghcr.io
+          docker_username: ${{ github.repository_owner }}
+          docker_password: ${{ secrets.GITHUB_TOKEN }}
