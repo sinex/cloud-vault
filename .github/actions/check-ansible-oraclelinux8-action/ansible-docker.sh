@@ -73,7 +73,7 @@ EOF
 git submodule update --init --recursive
 if [[ "${REQUIREMENTS}" == *.yml ]]
 then
-  ansible-galaxy install -r "${REQUIREMENTS}"
+  ansible-galaxy collection install -r "${REQUIREMENTS}"
 else
   [ -n "${REQUIREMENTS}" ] && ansible-galaxy install "${REQUIREMENTS}"
 fi
