@@ -15,10 +15,15 @@ terraform {
       source  = "cloudflare/cloudflare"
       version = "~> 3.15"
     }
+    github = {
+      source  = "integrations/github"
+      version = "~> 4.0"
+    }
 
   }
 }
 
+# OCI Provider
 provider "oci" {
   region       = var.region
   tenancy_ocid = var.oci_tenancy_ocid
@@ -32,10 +37,20 @@ data "oci_identity_availability_domain" "ad" {
   ad_number      = 1
 }
 
+# Cloudflare Provider
 provider "cloudflare" {
   api_token = var.cloudflare_api_token
 }
 
+# Github Provider
+provider "github" {
+  token = var.github_token
+}
+
+# SSH Key for deployer user
+resource "tls_private_key" "deployer" {
+  algorithm = "ED25519"
+}
 
 output "instance_ips" {
   value = [for name, vnic in data.oci_core_vnic.app_vnic : vnic.public_ip_address]
@@ -60,3 +75,4 @@ output "fqdn" {
 output "image_ocid" {
   value = lookup(data.oci_core_images.oracle_linux.images[0], "id")
 }
+
