@@ -1,6 +1,6 @@
 name: Check Ansible on OracleLinux 8
 
-on: [push, pull_request]
+on: [pull_request]
 
 jobs:
   ansible-check:
