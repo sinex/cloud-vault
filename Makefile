@@ -17,8 +17,6 @@ random_token  = $(shell openssl rand -base64 48)
 
 .PHONY: default build-images push-images infra-create infra-configure infra-destroy app-configure app-deploy app-destroy host-shell borg-shell vaultwarden-shell
 
-debug:
-	echo $(STACK_NAME)
 
 default:
 	@echo "Makefile Targets:"
