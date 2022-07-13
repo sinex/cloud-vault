@@ -5,7 +5,9 @@ on:
       - master
   workflow_call:
     outputs:
-      tree_sha: ${{ jobs.calculated_values.outputs.tree_sha }}
+      tree_sha:
+        description: "git Tree SHA for the current commit"
+        value: ${{ jobs.calculated_values.outputs.tree_sha }}
 
 jobs:
 
