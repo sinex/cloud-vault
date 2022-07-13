@@ -24,15 +24,15 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: luke142367/Docker-Lint-Action@v1.1.1
+        if: always()
         with:
           target: ${{ matrix.image }}/Dockerfile
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: hadolint/hadolint-action@v2.0.0
         if: always()
-      - uses: hadolint/hadolint-action@v2.1.0
         with:
           dockerfile: ${{ matrix.image }}/Dockerfile
-        if: always()
 
 
   shell-lint:

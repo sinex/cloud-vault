@@ -12,7 +12,7 @@
     state: installed
 
 - name: Enable OracleLinux 8 EPEL repository
-  community.general.ini_file:
+  ini_file:
     path: /etc/yum.repos.d/oracle-epel-ol8.repo
     section: ol8_developer_EPEL
     option: enabled
@@ -23,6 +23,7 @@
   yum:
     name:
       - cockpit
+      - cockpit-bridge
     state: absent
     autoremove: true
 

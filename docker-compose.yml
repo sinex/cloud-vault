@@ -9,22 +9,18 @@ services:
 
   vaultwarden:
     image: vaultwarden/server:latest
+    volumes:
+      - vaultwarden_data:/data
+      - /var/log/vaultwarden.log:/var/log/vaultwarden.log
     environment:
       - WEBSOCKET_ENABLED=true
       - SIGNUPS_ALLOWED=false
       - SHOW_PASSWORD_HINT=false
       - INVITATIONS_ALLOWED=true
-      - INVITATION_ORG_NAME=${VAULT_ORG_NAME:-Vaultwarden}
-      - DOMAIN=https://${VAULT_HOSTNAME:?}.${VAULT_DOMAIN:?}
-      - SMTP_FROM=${VAULT_ADMIN_EMAIL}
-      - SMTP_FROM_NAME=${VAULT_ORG_NAME}
       - LOG_FILE=/var/log/vaultwarden.log
+      - IP_HEADER=CF-Connecting-IP
       # Usually runs without an admin token, but can be set temporarily by `make app-configure`
       - ADMIN_TOKEN=${VAULT_ADMIN_TOKEN:-}
-      - IP_HEADER=CF-Connecting-IP
-    volumes:
-      - vaultwarden_data:/data
-      - /var/log/vaultwarden.log:/var/log/vaultwarden.log
     secrets:
       - source: VAULTWARDEN_ENV
         target: /.env
@@ -35,15 +31,15 @@ services:
     ports:
       - 80:80
       - 443:443
-
     volumes:
       - caddy_config:/config
       - caddy_data:/data
     environment:
       - PROXY_HOST=vaultwarden
       - LOG_FILE=/data/access.log
-      - DOMAIN=https://${VAULT_HOSTNAME:?}.${VAULT_DOMAIN:?}
-      - EMAIL=${VAULT_ADMIN_EMAIL:?}
+    secrets:
+      - CADDY_DOMAIN
+      - CADDY_EMAIL
 
   borg:
     image: ${CONTAINER_REGISTRY:-ghcr.io}/vault_borg:${IMAGE_TAG:-latest}
@@ -56,6 +52,16 @@ services:
 
 
 secrets:
+
+  CADDY_DOMAIN:
+    external: true
+
+  CADDY_EMAIL:
+    external: true
+
+  VAULTWARDEN_ENV:
+    external: true
+
   BORG_REPO:
     external: true
 
@@ -63,7 +69,4 @@ secrets:
     external: true
 
   BORG_SSH_PRIVATE_KEY:
-    external: true
-
-  VAULTWARDEN_ENV:
     external: true
