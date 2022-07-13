@@ -14,7 +14,6 @@ jobs:
     needs:
       - calculated_values
       - build
-    if: startsWith(github.ref, 'refs/heads/deploy')
     env:
       CONTAINER_REGISTRY: ghcr.io
       IMAGE_TAG: ${{ needs.calculated_values.outputs.tree_sha }}
