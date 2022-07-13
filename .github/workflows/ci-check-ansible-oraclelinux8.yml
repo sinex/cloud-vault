@@ -10,7 +10,7 @@ jobs:
       - uses: actions/checkout@v3
 
         # optionally replace "master" with any valid git ref
-      - uses: roles-ansible/check-ansible-centos-centos8-action@master
+      - uses: ./.github/actions/check-ansible-oraclelinux8-action
         with:
           targets: ./ansible/configure.yml
           group: all
