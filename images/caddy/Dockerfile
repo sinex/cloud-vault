@@ -6,4 +6,4 @@ COPY entrypoint.sh /
 HEALTHCHECK --interval=30s --timeout=2s \
     CMD wget -O /dev/null -Sq localhost:8888/healthcheck
 
-CMD "/entrypoint.sh"
+CMD ["/entrypoint.sh"]
