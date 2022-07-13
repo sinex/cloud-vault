@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    uses: ./github/workflows/cd-build.yml
+    uses: ./.github/workflows/cd-build.yml
 
   deploy:
     name: Deploy
