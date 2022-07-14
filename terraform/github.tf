@@ -3,8 +3,8 @@ data "github_actions_public_key" "main" {
 }
 
 data "sodium_encrypted_item" "deployer_key" {
-    public_key_base64 = data.github_actions_public_key.main.key
-    content_base64 = var.deploy_ssh_private_key
+  public_key_base64 = data.github_actions_public_key.main.key
+  content_base64    = var.deploy_ssh_private_key
 }
 
 resource "github_actions_secret" "deployer_ssh_private_key" {
