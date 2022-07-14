@@ -20,7 +20,7 @@ resource "oci_core_instance" "instances" {
   }
 
   create_vnic_details {
-    subnet_id    = oci_core_subnet.test_subnet.id
+    subnet_id    = oci_core_subnet.vault_subnet.id
     display_name = "primaryvnic"
     # Set to false if attaching a reserved public IP
     assign_public_ip = true
@@ -50,7 +50,7 @@ data "template_file" "cloud-init" {
   template = file("cloud-init.tpl.yml")
   vars = {
     deployer_username   = var.deployer_username
-    deployer_public_key = data.tls_public_key.deployer_ssh_key.public_key_openssh
+    deployer_public_key = trimspace(data.tls_public_key.deployer_ssh_key.public_key_openssh)
     admin_username      = var.admin_username
     admin_public_key    = var.admin_ssh_public_key
   }
