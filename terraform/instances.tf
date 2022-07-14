@@ -42,13 +42,15 @@ resource "oci_core_instance" "instances" {
   extended_metadata = {}
 }
 
-
+data "tls_public_key" "deployer_ssh_key" {
+  private_key_openssh = base64decode(var.deploy_ssh_private_key)
+}
 
 data "template_file" "cloud-init" {
   template = file("cloud-init.tpl.yml")
   vars = {
     deployer_username   = var.deployer_username
-    deployer_public_key = tls_private_key.deployer.public_key_openssh
+    deployer_public_key = data.tls_public_key.deployer_ssh_key.public_key_openssh
     admin_username      = var.admin_username
     admin_public_key    = var.admin_ssh_public_key
   }
