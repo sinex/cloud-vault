@@ -64,6 +64,10 @@ variable "admin_ssh_public_key" {
   type = string
 }
 
+variable "deploy_ssh_private_key" {
+  type = string
+}
+
 # Instance config
 # ----------------------------------------------------------------------------
 

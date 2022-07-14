@@ -1,7 +1,16 @@
+data "github_actions_public_key" "main" {
+  repository = var.github_repository
+}
+
+data "sodium_encrypted_item" "deployer_key" {
+    public_key_base64 = data.github_actions_public_key.main.key
+    content_base64 = var.deploy_ssh_private_key
+}
+
 resource "github_actions_secret" "deployer_ssh_private_key" {
   repository      = var.github_repository
   secret_name     = "DEPLOYER_SSH_PRIVATE_KEY"
-  plaintext_value = tls_private_key.deployer.private_key_openssh
+  encrypted_value = data.sodium_encrypted_item.deployer_key.encrypted_value_base64
 }
 
 resource "github_actions_secret" "deployer_username" {

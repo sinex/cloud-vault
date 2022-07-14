@@ -13,6 +13,7 @@ endif
 
 tf_output     = $(shell jq -r .$(1).value $(TF_OUTPUTS))
 random_token  = $(shell openssl rand -base64 48)
+base64        = $(shell base64 -w0 $(1))
 
 
 .PHONY: default build-images push-images infra-create infra-configure infra-destroy app-configure app-deploy app-destroy host-shell borg-shell vaultwarden-shell
@@ -42,6 +43,17 @@ $(TF_OUTPUTS):
 		rm "$(TF_OUTPUTS)"
 		exit 1
 	fi
+
+
+deploy-key: keys/deploy
+	@printf '%s\n\n%s\n' "Use this string as the 'deploy_ssh_private_key' Terraform variable:" $(call base64,$<)
+
+borg-key: keys/borg
+	@printf '%s\n\n%s\n' "Use this string as the BORG_SSH_PRIVATE_KEY environment variable:" $(call base64,$<)
+
+keys/%:
+	@if [ ! -d keys ]; then mkdir -v keys; fi
+	if [ ! -f keys/$* ]; then ssh-keygen -q -N '' -t ed25519 -f keys/$* -C $(STACK_NAME)-$*; fi
 
 
 build-images: $(addprefix $(CONTAINER_REGISTRY_PREFIX),vault_borg vault_caddy)

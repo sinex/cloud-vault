@@ -19,7 +19,10 @@ terraform {
       source  = "integrations/github"
       version = "~> 4.0"
     }
-
+    sodium = {
+      source  = "killmeplz/sodium"
+      version = "= 0.0.3"
+    }
   }
 }
 
