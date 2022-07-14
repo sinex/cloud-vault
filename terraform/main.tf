@@ -19,7 +19,10 @@ terraform {
       source  = "integrations/github"
       version = "~> 4.0"
     }
-
+    sodium = {
+      source  = "killmeplz/sodium"
+      version = "= 0.0.3"
+    }
   }
 }
 
@@ -32,10 +35,6 @@ provider "oci" {
   private_key  = var.oci_api_private_key
 }
 
-data "oci_identity_availability_domain" "ad" {
-  compartment_id = var.oci_tenancy_ocid
-  ad_number      = 1
-}
 
 # Cloudflare Provider
 provider "cloudflare" {
@@ -46,33 +45,3 @@ provider "cloudflare" {
 provider "github" {
   token = var.github_token
 }
-
-# SSH Key for deployer user
-resource "tls_private_key" "deployer" {
-  algorithm = "ED25519"
-}
-
-output "instance_ips" {
-  value = [for name, vnic in data.oci_core_vnic.app_vnic : vnic.public_ip_address]
-}
-
-output "primary_ip" {
-  value = data.oci_core_vnic.app_vnic["primary"].public_ip_address
-}
-
-output "deployer_username" {
-  value = var.deployer_username
-}
-
-output "admin_username" {
-  value = var.admin_username
-}
-
-output "fqdn" {
-  value = cloudflare_record.vault.hostname
-}
-
-output "image_ocid" {
-  value = lookup(data.oci_core_images.oracle_linux.images[0], "id")
-}
-

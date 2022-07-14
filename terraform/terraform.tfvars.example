@@ -42,6 +42,9 @@ admin_username = "admin"
 # User-provided SSH public key. Will be used for both the 'admin' and 'deployer' accounts
 admin_ssh_public_key = "ssh-ed25519 AAAAC..."
 
+# Base64 encoded SSH private key for deployment actions
+deploy_ssh_private_key = "LS0tLS1CRUdJTiB..."
+
 
 # Instance config
 # ----------------------------------------------------------------------------

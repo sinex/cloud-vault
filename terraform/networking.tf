@@ -8,24 +8,24 @@ resource "oci_core_vcn" "vault_vcn" {
   dns_label      = "vaultvcn"
 }
 
-resource "oci_core_subnet" "test_subnet" {
+resource "oci_core_subnet" "vault_subnet" {
   cidr_block        = "10.14.42.0/24"
   display_name      = "vault-subnet"
   dns_label         = "vaultsubnet"
-  security_list_ids = [oci_core_security_list.test_security_list.id]
+  security_list_ids = [oci_core_security_list.vault_security_list.id]
   compartment_id    = var.oci_compartment_ocid
   vcn_id            = oci_core_vcn.vault_vcn.id
-  route_table_id    = oci_core_route_table.test_route_table.id
+  route_table_id    = oci_core_route_table.vault_route_table.id
   dhcp_options_id   = oci_core_vcn.vault_vcn.default_dhcp_options_id
 }
 
-resource "oci_core_internet_gateway" "test_internet_gateway" {
+resource "oci_core_internet_gateway" "vault_internet_gateway" {
   compartment_id = var.oci_compartment_ocid
   display_name   = "vault-gw"
   vcn_id         = oci_core_vcn.vault_vcn.id
 }
 
-resource "oci_core_route_table" "test_route_table" {
+resource "oci_core_route_table" "vault_route_table" {
   compartment_id = var.oci_compartment_ocid
   vcn_id         = oci_core_vcn.vault_vcn.id
   display_name   = "vault-routetable"
@@ -33,11 +33,11 @@ resource "oci_core_route_table" "test_route_table" {
   route_rules {
     destination       = "0.0.0.0/0"
     destination_type  = "CIDR_BLOCK"
-    network_entity_id = oci_core_internet_gateway.test_internet_gateway.id
+    network_entity_id = oci_core_internet_gateway.vault_internet_gateway.id
   }
 }
 
-resource "oci_core_security_list" "test_security_list" {
+resource "oci_core_security_list" "vault_security_list" {
   compartment_id = var.oci_compartment_ocid
   vcn_id         = oci_core_vcn.vault_vcn.id
   display_name   = "vault-securitylist"

@@ -20,7 +20,7 @@ resource "oci_core_instance" "instances" {
   }
 
   create_vnic_details {
-    subnet_id    = oci_core_subnet.test_subnet.id
+    subnet_id    = oci_core_subnet.vault_subnet.id
     display_name = "primaryvnic"
     # Set to false if attaching a reserved public IP
     assign_public_ip = true
@@ -42,21 +42,15 @@ resource "oci_core_instance" "instances" {
   extended_metadata = {}
 }
 
-# See https://docs.oracle.com/iaas/images/
-data "oci_core_images" "oracle_linux" {
-  compartment_id           = var.oci_compartment_ocid
-  operating_system         = "Oracle Linux"
-  operating_system_version = "8"
-  shape                    = var.instance_shape
-  sort_by                  = "TIMECREATED"
-  sort_order               = "DESC"
+data "tls_public_key" "deployer_ssh_key" {
+  private_key_openssh = base64decode(var.deploy_ssh_private_key)
 }
 
 data "template_file" "cloud-init" {
   template = file("cloud-init.tpl.yml")
   vars = {
     deployer_username   = var.deployer_username
-    deployer_public_key = tls_private_key.deployer.public_key_openssh
+    deployer_public_key = trimspace(data.tls_public_key.deployer_ssh_key.public_key_openssh)
     admin_username      = var.admin_username
     admin_public_key    = var.admin_ssh_public_key
   }
