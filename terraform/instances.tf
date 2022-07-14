@@ -42,15 +42,7 @@ resource "oci_core_instance" "instances" {
   extended_metadata = {}
 }
 
-# See https://docs.oracle.com/iaas/images/
-data "oci_core_images" "oracle_linux" {
-  compartment_id           = var.oci_compartment_ocid
-  operating_system         = "Oracle Linux"
-  operating_system_version = "8"
-  shape                    = var.instance_shape
-  sort_by                  = "TIMECREATED"
-  sort_order               = "DESC"
-}
+
 
 data "template_file" "cloud-init" {
   template = file("cloud-init.tpl.yml")
