@@ -15,9 +15,16 @@ Features:
 - Provisioned on Always-Free tier OCI resources
 - Backups to an existing borg repository
 
-
 ## Requirements
 
+### Dependencies
+- make
+- jq
+- terraform
+- ansible
+- docker
+
+### Resources
 - Github
   - Personal Access Token with `write:packages` scope (for pushing images)
   - Personal Access Token with `delete:packages` scope (for CI image cleanup)
