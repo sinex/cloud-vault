@@ -1,0 +1,23 @@
+- name: Restart sshd
+  systemd:
+    state: restarted
+    name: sshd
+
+- name: Restart fail2ban
+  systemd:
+    name: fail2ban
+    state: restarted
+    enabled: true
+    daemon_reload: true
+
+- name: Restart rsyslog
+  systemd:
+    name: rsyslog
+    state: restarted
+
+- name: Restart dind
+  systemd:
+    name: dind
+    state: restarted
+    enabled: true
+    daemon_reload: true

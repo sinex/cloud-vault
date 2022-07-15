@@ -1,0 +1,67 @@
+- name: Enable docker service
+  systemd:
+    daemon_reload: true
+    name: docker
+    state: started
+    enabled: true
+
+
+- name: Initialise docker swarm
+  tags:
+    - docker
+  community.docker.docker_swarm:
+    state: present
+
+
+- name: Install docker-ingress-routing-daemon (executable)
+  tags:
+    - docker
+    - dind
+  copy:
+    src: files/docker-ingress-routing-daemon/docker-ingress-routing-daemon
+    dest: /usr/local/bin/docker-ingress-routing-daemon
+    owner: root
+    group: root
+    mode: '0755'
+
+
+- name: Collect docker swarm ingress IPs
+  tags:
+    - docker
+    - dind
+  shell: ( /usr/local/bin/docker-ingress-routing-daemon 2>&1 || true ) | sed -n 's/.*ingress network IP{{":"}} //p'
+  register: ingress_ip
+  changed_when: false
+  failed_when: ingress_ip.stdout | trim | length == 0
+
+
+- name: Install docker-ingress-routing-daemin (systemd unit)
+  tags:
+    - docker
+    - dind
+  vars:
+    ingress_gateway_ip_list: "{{ ansible_play_hosts | map('extract', hostvars, 'ingress_ip') | map(attribute='stdout') | map('trim') | join(' ') }}"
+  copy:
+    dest: /etc/systemd/system/dind.service
+    content: "{{ lookup('template', 'files/docker-ingress-routing-daemon/dind.service') }}"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart dind
+
+
+- name: Configure docker secrets
+  tags:
+    - docker
+    - docker-secrets
+  community.docker.docker_secret:
+    name: "{{ item.name }}"
+    data: "{{ lookup('vars', '{{ item.var }}') }}"
+    state: present
+  loop:
+    - { name: BORG_REPO, var: borg_repo }
+    - { name: BORG_PASSPHRASE, var: borg_passphrase }
+    - { name: BORG_SSH_PRIVATE_KEY, var: borg_ssh_private_key }
+    - { name: VAULTWARDEN_ENV, var: vaultwarden_env }
+    - { name: CADDY_DOMAIN, var: caddy_domain }
+    - { name: CADDY_EMAIL, var: caddy_email }

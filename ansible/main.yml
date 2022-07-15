@@ -1,0 +1,24 @@
+- name: Configure
+  hosts: vault
+  become: true
+  gather_facts: true
+  gather_subset:
+    - devices
+
+  tasks:
+    - import_tasks: "storage.yml"
+
+    - import_tasks: "os.yml"
+
+    - import_tasks: "docker.yml"
+
+    - import_tasks: "fail2ban.yml"
+
+    - name: Update MOTD
+      lineinfile:
+        path: /etc/motd
+        line: "Configured by ansible."
+        state: present
+
+  handlers:
+    - import_tasks: "handlers.yml"

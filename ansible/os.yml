@@ -1,0 +1,37 @@
+- name: Distro-specific OS configuration
+  include_tasks: "os.{{ ansible_facts['os_family'] | lower }}.yml"
+
+- name: Install required packages
+  package:
+    state: present
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - python3-docker
+      - fail2ban
+
+- name: Enable SELinux
+  ansible.posix.selinux:
+    policy: targeted
+    state: enforcing
+
+- name: Configure SELinux
+  ansible.posix.seboolean:
+    name: nis_enabled
+    state: true
+    persistent: true
+
+- name: Configure SSH server daemon
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^(# *)?{{ item.key }} \\w+$"
+    line: "{{ item.key }} {{ item.value }}"
+    state: present
+  loop:
+    - {key: "PermitRootLogin", value: "no"}
+    - {key: "MaxSessions", value: "500"}
+    - {key: "PasswordAuthentication", value: "no"}
+    - {key: "X11Forwarding", value: "no"}
+    - {key: "AllowGroups", value: "ssh_users"}
+  notify:
+    - Restart sshd
