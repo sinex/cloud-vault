@@ -1,6 +1,7 @@
 # cloud-vault
 
 [![Linter Checks](https://github.com/sinex/cloud-vault/actions/workflows/ci-lint-checks.yml/badge.svg?branch=master)](https://github.com/sinex/cloud-vault/actions/workflows/ci-lint-checks.yml)
+[![Build](https://github.com/sinex/cloud-vault/actions/workflows/cd-build.yml/badge.svg?branch=master)](https://github.com/sinex/cloud-vault/actions/workflows/cd-build.yml)
 [![Deploy](https://github.com/sinex/cloud-vault/actions/workflows/cd-deploy.yml/badge.svg?branch=deploy)](https://github.com/sinex/cloud-vault/actions/workflows/cd-deploy.yml)
 
 
