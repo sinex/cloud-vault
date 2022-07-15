@@ -1,3 +1,0 @@
-[submodule "ansible/files/docker-ingress-routing-daemon"]
-	path = ansible/files/docker-ingress-routing-daemon
-	url = https://github.com/newsnowlabs/docker-ingress-routing-daemon.git
