@@ -1,0 +1,32 @@
+- name: Partition Block Volume
+  vars:
+    - size: "{{ 100 / (block_volume_mounts | length) }}"
+  community.general.parted:
+    device: "{{ block_volume_device }}"
+    number: "{{ ansible_loop.index }}"
+    label: gpt
+    part_start: "{{ (ansible_loop.index0 * (size | float)) | round | int }}%"
+    part_end: "{{ (ansible_loop.index0 * (size | float) + (size | float)) | round | int }}%"
+    unit: "%"
+    state: present
+  when: block_volume_device | regex_replace("^/dev/") in hostvars[inventory_hostname].ansible_devices
+  loop: "{{ block_volume_mounts }}"
+  loop_control:
+    extended: true
+  register: block_volume
+
+- name: Format Block Volume
+  community.general.filesystem:
+    dev: "{{ (block_volume.results | last).disk.dev }}{{ item.num }}"
+    fstype: "{{ block_volume_filesystem }}"
+    resizefs: true
+    force: false
+  loop: "{{ block_volume.results | map(attribute='partitions') | last }}"
+
+- name: Mount Block Volume
+  ansible.posix.mount:
+    src: "{{ block_volume_device }}{{ item.num }}"
+    path: "{{ block_volume_mounts[item.num | int - 1] }}"
+    fstype: "{{ block_volume_filesystem }}"
+    state: mounted
+  loop: "{{ block_volume.results | map(attribute='partitions') | last }}"

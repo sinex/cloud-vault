@@ -1,3 +1,9 @@
+# Host hardware
+block_volume_device: /dev/sdb
+block_volume_filesystem: ext4
+block_volume_mounts:
+  - "/vaultwarden_data"
+
 # fail2ban variables
 fail2ban_cloudflare_zone_id: "{{ lookup('env', 'CLOUDFLARE_ZONE_ID') }}"
 fail2ban_cloudflare_token: "{{ lookup('env', 'CLOUDFLARE_API_TOKEN') }}"
