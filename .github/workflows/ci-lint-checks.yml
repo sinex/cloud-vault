@@ -29,7 +29,7 @@ jobs:
           target: ${{ matrix.image }}/Dockerfile
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - uses: hadolint/hadolint-action@v2.0.0
+      - uses: hadolint/hadolint-action@v2.1.0
         if: always()
         with:
           dockerfile: ${{ matrix.image }}/Dockerfile
