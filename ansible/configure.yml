@@ -2,6 +2,9 @@
   hosts: vault
   become: true
   tasks:
+    - name: Configure Storage
+      include_tasks: "configure_disks.yml"
+
     - name: OS-specific configuration
       include_tasks: "configure.{{ ansible_facts['os_family'] | lower }}.yml"
 
