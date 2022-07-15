@@ -1,7 +1,7 @@
 # cloud-vault
 
 [![Linter Checks](https://github.com/sinex/cloud-vault/actions/workflows/ci-lint-checks.yml/badge.svg?branch=master)](https://github.com/sinex/cloud-vault/actions/workflows/ci-lint-checks.yml)
-[![Deploy](https://github.com/sinex/cloud-vault/actions/workflows/cd.yml/badge.svg?branch=deploy)](https://github.com/sinex/cloud-vault/actions/workflows/cd.yml)
+[![Deploy](https://github.com/sinex/cloud-vault/actions/workflows/cd-deploy.yml/badge.svg?branch=deploy)](https://github.com/sinex/cloud-vault/actions/workflows/cd.yml)
 
 
 Automated deployment of Vaultwarden to Oracle Cloud Infrastructure
