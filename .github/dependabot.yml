@@ -8,11 +8,16 @@ updates:
       interval: "weekly"
 
   - package-ecosystem: "docker"
-    directory: "/"
+    directory: "/images/borg"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "docker"
+    directory: "/images/caddy"
     schedule:
       interval: "weekly"
 
   - package-ecosystem: "terraform"
-    directory: "/"
+    directory: "/terraform"
     schedule:
       interval: "weekly"
