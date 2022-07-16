@@ -1,8 +1,9 @@
-# Host hardware
+# Host configuration
 block_volume_device: /dev/sdb
-block_volume_filesystem: ext4
+block_volume_filesystem: btrfs
+block_volume_luks_password: "{{ lookup('env', 'DATA_LUKS_PASSWORD') }}"
 block_volume_mounts:
-  - "/vaultwarden_data"
+  - {target: /var/lib/docker/volumes, mode: '0701'}
 
 # fail2ban variables
 fail2ban_cloudflare_zone_id: "{{ lookup('env', 'CLOUDFLARE_ZONE_ID') }}"

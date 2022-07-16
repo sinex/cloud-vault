@@ -1,8 +1,20 @@
-- name: Partition Block Volume
+- name: "Storage: Create LUKS container"
+  tags:
+    - storage
+  community.crypto.luks_device:
+    device: "{{ block_volume_device }}"
+    state: opened
+    name: block_volume
+    passphrase: "{{ block_volume_luks_password }}"
+
+
+- name: "Storage: Partition Block Volume"
+  tags:
+    - storage
   vars:
     - size: "{{ 100 / (block_volume_mounts | length) }}"
   community.general.parted:
-    device: "{{ block_volume_device }}"
+    device: /dev/mapper/block_volume
     number: "{{ ansible_loop.index }}"
     label: gpt
     part_start: "{{ (ansible_loop.index0 * (size | float)) | round | int }}%"
@@ -22,14 +34,26 @@
   community.general.filesystem:
     dev: "{{ (block_volume.results | last).disk.dev }}{{ item.num }}"
     fstype: "{{ block_volume_filesystem }}"
-    resizefs: true
     force: false
-  loop: "{{ block_volume.results | map(attribute='partitions') | last }}"
+  loop: "{{ (block_volume.results | last).partitions }}"
 
-- name: Mount Block Volume
+
+- name: "Storage: Create block volume mount points"
+  tags:
+    - storage
+  file:
+    path: "{{ item.target }}"
+    state: directory
+    mode: "{{ item.mode }}"
+  loop: "{{ block_volume_mounts }}"
+
+
+- name: "Storage: Mount Block Volume partitions"
+  tags:
+    - storage
   ansible.posix.mount:
-    src: "{{ block_volume_device }}{{ item.num }}"
-    path: "{{ block_volume_mounts[item.num | int - 1] }}"
+    src: "{{ (block_volume.results | last).disk.dev }}{{ item.num }}"
+    path: "{{ block_volume_mounts[item.num | int - 1].target }}"
     fstype: "{{ block_volume_filesystem }}"
-    state: mounted
-  loop: "{{ block_volume.results | map(attribute='partitions') | last }}"
+    state: absent
+  loop: "{{ (block_volume.results | last).partitions }}"
