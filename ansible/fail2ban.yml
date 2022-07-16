@@ -1,4 +1,4 @@
-- name: Enable fail2ban
+- name: "fail2ban: Enable service"
   tags:
     - fail2ban
   systemd:
@@ -8,7 +8,7 @@
     enabled: true
 
 
-- name: Create vaultwarden.log
+- name: "fail2ban: Create vaultwarden.log"
   tags:
     - fail2ban
   copy:
@@ -20,7 +20,7 @@
     mode: '0640'
 
 
-- name: Configure fail2ban
+- name: "fail2ban: Install filters"
   tags:
     - fail2ban
   copy:
@@ -38,7 +38,7 @@
     - Restart fail2ban
 
 
-- name: Install fail2ban CloudFlare action
+- name: "fail2ban: Install cloudFlare action"
   tags:
     - fail2ban
   template:
@@ -51,7 +51,7 @@
     - Restart fail2ban
 
 
-- name: Configure logrotate
+- name: "fail2ban: Configure logrotate"
   copy:
     src: files/logrotate/vaultwarden.conf
     dest: /etc/logrotate.d/vaultwarden

@@ -15,7 +15,10 @@
     extended: true
   register: block_volume
 
-- name: Format Block Volume
+
+- name: "Storage: Format Block Volume partitions"
+  tags:
+    - storage
   community.general.filesystem:
     dev: "{{ (block_volume.results | last).disk.dev }}{{ item.num }}"
     fstype: "{{ block_volume_filesystem }}"

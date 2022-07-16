@@ -1,4 +1,6 @@
-- name: Add Docker CE yum repository
+- name: "OS (RedHat): Add Docker CE yum repository"
+  tags:
+    - os
   yum_repository:
     name: docker-ce
     description: Docker CE Stable - $basearch
@@ -6,12 +8,16 @@
     gpgcheck: true
     gpgkey: https://download.docker.com/linux/centos/gpg
 
-- name: Add OracleLinux 8 EPEL repository
+- name: "OS (RedHat): Add OracleLinux 8 EPEL repository"
+  tags:
+    - os
   yum:
     name: oracle-epel-release-el8
     state: installed
 
-- name: Enable OracleLinux 8 EPEL repository
+- name: "OS (RedHat): Enable OracleLinux 8 EPEL repository"
+  tags:
+    - os
   ini_file:
     path: /etc/yum.repos.d/oracle-epel-ol8.repo
     section: ol8_developer_EPEL
@@ -19,7 +25,9 @@
     value: 1
     no_extra_spaces: true
 
-- name: Remove cockpit
+- name: "OS (RedHat): Remove cockpit"
+  tags:
+    - os
   yum:
     name:
       - cockpit
@@ -27,7 +35,9 @@
     state: absent
     autoremove: true
 
-- name: Upgrade packages
+- name: "OS (RedHat): Upgrade packages"
+  tags:
+    - os
   yum:
     name: '*'
     state: latest
