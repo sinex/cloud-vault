@@ -40,6 +40,17 @@ resource "oci_core_instance" "instances" {
   }
 
   extended_metadata = {}
+
+  provisioner "remote-exec" {
+    inline = [
+      "cloud-init status --wait"
+    ]
+    connection {
+      host = self.public_ip
+      user = var.deployer_username
+      private_key = base64decode(var.deploy_ssh_private_key)
+    }
+  }
 }
 
 data "tls_public_key" "deployer_ssh_key" {
