@@ -1,22 +1,5 @@
 #cloud-config
 
-device_aliases:
-  block_volume: /dev/sdb
-
-disk_setup:
-  block_volume:
-    table_type: gpt
-    layout: true
-
-fs_setup:
-  - label: vaultwarden_data
-    filesystem: ext4
-    device: block_volume.1
-
-mounts:
-  - ["block_volume.1", "/vaultwarden_data"]
-
-
 groups:
   - ssh_users
 
