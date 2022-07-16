@@ -46,8 +46,8 @@ resource "oci_core_instance" "instances" {
       "cloud-init status --wait"
     ]
     connection {
-      host = self.public_ip
-      user = var.deployer_username
+      host        = self.public_ip
+      user        = var.deployer_username
       private_key = base64decode(var.deploy_ssh_private_key)
     }
   }
