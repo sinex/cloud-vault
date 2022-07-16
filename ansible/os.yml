@@ -23,7 +23,18 @@
     state: enforcing
   register: selinux
 
-- name: Configure SELinux
+- name: "OS: Reboot System"
+  tags:
+    - os
+    - selinux
+  reboot:
+  when: selinux.reboot_required
+
+- name: "OS: Configure SELinux"
+  tags:
+    - os
+    - selinux
+  when: not selinux.state == "disabled"
   ansible.posix.seboolean:
     name: nis_enabled
     state: true
