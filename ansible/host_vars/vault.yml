@@ -3,7 +3,7 @@ block_volume_device: /dev/sdb
 block_volume_filesystem: btrfs
 block_volume_luks_password: "{{ lookup('env', 'DATA_LUKS_PASSWORD') }}"
 block_volume_mounts:
-  - {target: /var/lib/docker/volumes, mode: '0701'}
+  - { target: /var/lib/docker/volumes, size: '10G', mode: '0701' }
 
 # fail2ban variables
 fail2ban_cloudflare_zone_id: "{{ lookup('env', 'CLOUDFLARE_ZONE_ID') }}"
