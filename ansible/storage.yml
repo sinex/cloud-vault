@@ -41,13 +41,6 @@
     pvs: /dev/mapper/block_volume_crypt
 
 
-#- name: "Storage: Calculate LVM volume names"
-#  set_fact:
-#    lvm_volumes: "{{ block_volume_mounts | map(attribute='target') | map('regex_replace', '/', '_') | map('regex_replace', '^_') | list }}"
-#  tags:
-#    - storage
-
-
 - name: "Storage: Read LVM device information"
   tags:
     - storage
@@ -55,26 +48,13 @@
   register: lvm_info
 
 
-#- name: "Storage: Calculate LVM volume names"
-#  set_fact:
-#    mounts: "{{
-#      mounts | default([]) + [
-#        item | combine({
-#          'lvm_name': item.target | regex_replace('/', '_') | regex_replace('^_')
-#        })
-#      ]
-#    }}"
-#  loop: "{{ block_volume_mounts }}"
-
-
-
 - name: "Storage: Create LVM volumes"
   tags:
     - storage
   community.general.system.lvol:
-     vg: block_volume
-     lv: "{{ item.lvm_name }}"
-     size: "{{ item.size }}"
+    vg: block_volume
+    lv: "{{ item.lvm_name }}"
+    size: "{{ item.size }}"
   loop: "{{ lvm_volumes }}"
 
 
@@ -86,6 +66,7 @@
     fstype: "{{ block_volume_filesystem }}"
   loop: "{{ lvm_volumes }}"
 
+
 - name: "Storage: Mount Block Volume partitions"
   tags:
     - storage
@@ -95,66 +76,3 @@
     fstype: "{{ block_volume_filesystem }}"
     state: mounted
   loop: "{{ lvm_volumes }}"
-
-
-#- name: "Storage: Format Block Volume partitions"
-#  tags:
-#    - storage
-#  community.general.filesystem:
-#    dev: "{{ (block_volume.results | last).disk.dev }}{{ item.num }}"
-#    fstype: "{{ block_volume_filesystem }}"
-#    force: false
-#  loop: "{{ (block_volume.results | last).partitions }}"
-#
-
-
-#- name: "Storage: Partition Block Volume"
-#  tags:
-#    - storage
-#  vars:
-#    - size: "{{ 100 / (block_volume_mounts | length) }}"
-#  community.general.parted:
-#    device: /dev/mapper/block_volume
-#    number: "{{ ansible_loop.index }}"
-#    label: gpt
-#    part_start: "{{ (ansible_loop.index0 * (size | float)) | round | int }}%"
-#    part_end: "{{ (ansible_loop.index0 * (size | float) + (size | float)) | round | int }}%"
-#    unit: "%"
-#    state: present
-#  when: block_volume_device | regex_replace("^/dev/") in hostvars[inventory_hostname].ansible_devices
-#  loop: "{{ block_volume_mounts }}"
-#  loop_control:
-#    extended: true
-#  register: block_volume
-#
-#
-#- name: "Storage: Format Block Volume partitions"
-#  tags:
-#    - storage
-#  community.general.filesystem:
-#    dev: "{{ (block_volume.results | last).disk.dev }}{{ item.num }}"
-#    fstype: "{{ block_volume_filesystem }}"
-#    force: false
-#  loop: "{{ (block_volume.results | last).partitions }}"
-#
-#
-#- name: "Storage: Create block volume mount points"
-#  tags:
-#    - storage
-#  file:
-#    path: "{{ item.target }}"
-#    state: directory
-#    mode: "{{ item.mode }}"
-#  loop: "{{ block_volume_mounts }}"
-#
-#
-#- name: "Storage: Mount Block Volume partitions"
-#  tags:
-#    - storage
-#  ansible.posix.mount:
-#    src: "{{ (block_volume.results | last).disk.dev }}{{ item.num }}"
-#    path: "{{ block_volume_mounts[item.num | int - 1].target }}"
-#    fstype: "{{ block_volume_filesystem }}"
-#    state: absent
-#  loop: "{{ (block_volume.results | last).partitions }}"
-#
