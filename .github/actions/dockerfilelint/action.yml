@@ -1,0 +1,17 @@
+name: dockerfilelint
+author: Joshua Stover <josh@jstover.net>
+description: 'Lint a Dockerfile using dockerfilelint'
+inputs:
+
+  dockerfile:
+    description: Path to the Dockerfile to lint
+    required: true
+
+runs:
+  using: docker
+  image: Dockerfile
+
+branding:
+  icon: layers
+  color: gray-dark
+
