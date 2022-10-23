@@ -1,32 +1,78 @@
-- name: Partition Block Volume
-  vars:
-    - size: "{{ 100 / (block_volume_mounts | length) }}"
-  community.general.parted:
-    device: "{{ block_volume_device }}"
-    number: "{{ ansible_loop.index }}"
-    label: gpt
-    part_start: "{{ (ansible_loop.index0 * (size | float)) | round | int }}%"
-    part_end: "{{ (ansible_loop.index0 * (size | float) + (size | float)) | round | int }}%"
-    unit: "%"
-    state: present
-  when: block_volume_device | regex_replace("^/dev/") in hostvars[inventory_hostname].ansible_devices
+- name: "Storage: Calculate LVM volume names"
+  tags:
+    - storage
+    - debug
+  set_fact:
+    lvm_volumes: "{{
+      lvm_volumes | default([]) + [
+        item | combine({
+          'lvm_name': item.target | regex_replace('/', '_') | regex_replace('^_')
+        })
+      ]
+    }}"
   loop: "{{ block_volume_mounts }}"
-  loop_control:
-    extended: true
-  register: block_volume
 
-- name: Format Block Volume
-  community.general.filesystem:
-    dev: "{{ (block_volume.results | last).disk.dev }}{{ item.num }}"
+
+- name: "Storage: Create partition block volume"
+  tags:
+    - storage
+  community.general.system.parted:
+    device: "{{ block_volume_device }}"
+    label: gpt
+    number: 1
+    state: present
+
+
+- name: "Storage: Create LUKS container"
+  tags:
+    - storage
+  community.crypto.luks_device:
+    device: "{{block_volume_device }}1"
+    state: opened
+    name: block_volume_crypt
+    passphrase: "{{ block_volume_luks_password }}"
+
+
+- name: Create LVM Group
+  tags:
+    - storage
+  community.general.system.lvg:
+    vg: block_volume
+    pvs: /dev/mapper/block_volume_crypt
+
+
+- name: "Storage: Read LVM device information"
+  tags:
+    - storage
+  community.general.system.parted: device=/dev/mapper/block_volume_crypt unit=MiB
+  register: lvm_info
+
+
+- name: "Storage: Create LVM volumes"
+  tags:
+    - storage
+  community.general.system.lvol:
+    vg: block_volume
+    lv: "{{ item.lvm_name }}"
+    size: "{{ item.size }}"
+  loop: "{{ lvm_volumes }}"
+
+
+- name: "Storage: Format LVM volumes"
+  tags:
+    - storage
+  community.general.system.filesystem:
+    dev: "/dev/mapper/block_volume-{{ item.lvm_name }}"
     fstype: "{{ block_volume_filesystem }}"
-    resizefs: true
-    force: false
-  loop: "{{ block_volume.results | map(attribute='partitions') | last }}"
+  loop: "{{ lvm_volumes }}"
 
-- name: Mount Block Volume
+
+- name: "Storage: Mount Block Volume partitions"
+  tags:
+    - storage
   ansible.posix.mount:
-    src: "{{ block_volume_device }}{{ item.num }}"
-    path: "{{ block_volume_mounts[item.num | int - 1] }}"
+    src: "/dev/mapper/block_volume-{{ item.lvm_name }}"
+    path: "{{ item.target }}"
     fstype: "{{ block_volume_filesystem }}"
     state: mounted
-  loop: "{{ block_volume.results | map(attribute='partitions') | last }}"
+  loop: "{{ lvm_volumes }}"

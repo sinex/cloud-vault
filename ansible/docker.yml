@@ -1,4 +1,6 @@
-- name: Enable docker service
+- name: "Docker: Enable service"
+  tags:
+    - docker
   systemd:
     daemon_reload: true
     name: docker
@@ -6,14 +8,14 @@
     enabled: true
 
 
-- name: Initialise docker swarm
+- name: "Docker: Initialise swarm"
   tags:
     - docker
   community.docker.docker_swarm:
     state: present
 
 
-- name: Install docker-ingress-routing-daemon (executable)
+- name: "Docker: Install docker-ingress-routing-daemon (executable)"
   tags:
     - docker
     - dind
@@ -25,7 +27,7 @@
     mode: '0755'
 
 
-- name: Collect docker swarm ingress IPs
+- name: "Docker: Collect swarm ingress IPs"
   tags:
     - docker
     - dind
@@ -35,7 +37,7 @@
   failed_when: ingress_ip.stdout | trim | length == 0
 
 
-- name: Install docker-ingress-routing-daemin (systemd unit)
+- name: "Docker: Install docker-ingress-routing-daemon (systemd unit)"
   tags:
     - docker
     - dind
@@ -50,7 +52,7 @@
   notify: Restart dind
 
 
-- name: Configure docker secrets
+- name: "Docker: Configure secrets"
   tags:
     - docker
     - docker-secrets

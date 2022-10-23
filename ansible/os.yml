@@ -1,7 +1,11 @@
-- name: Distro-specific OS configuration
+- name: "OS: Distro-specific configuration"
+  tags:
+    - os
   include_tasks: "os.{{ ansible_facts['os_family'] | lower }}.yml"
 
-- name: Install required packages
+- name: "OS: Install required packages"
+  tags:
+    - os
   package:
     state: present
     name:
@@ -10,18 +14,35 @@
       - python3-docker
       - fail2ban
 
-- name: Enable SELinux
+- name: "OS: Enable SELinux"
+  tags:
+    - os
+    - selinux
   ansible.posix.selinux:
     policy: targeted
     state: enforcing
+  register: selinux
 
-- name: Configure SELinux
+- name: "OS: Reboot System"
+  tags:
+    - os
+    - selinux
+  reboot:
+  when: selinux.reboot_required
+
+- name: "OS: Configure SELinux"
+  tags:
+    - os
+    - selinux
+  when: not selinux.state == "disabled"
   ansible.posix.seboolean:
     name: nis_enabled
     state: true
     persistent: true
 
-- name: Configure SSH server daemon
+- name: "OS: Configure SSH daemon"
+  tags:
+    - os
   lineinfile:
     path: /etc/ssh/sshd_config
     regexp: "^(# *)?{{ item.key }} \\w+$"
