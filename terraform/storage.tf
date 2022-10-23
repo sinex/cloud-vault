@@ -4,6 +4,9 @@ resource "oci_core_volume" "vaultwarden_data" {
   display_name        = "vaultwarden_data"
   size_in_gbs         = 50
   vpus_per_gb         = 10
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "oci_core_volume_attachment" "vaultwarden_data_attachment" {
