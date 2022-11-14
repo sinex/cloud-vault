@@ -27,7 +27,7 @@ jobs:
         if: always()
         with:
           dockerfile: ${{ matrix.image }}/Dockerfile
-      - uses: hadolint/hadolint-action@v2.0.0
+      - uses: hadolint/hadolint-action@v3.0.0
         if: always()
         with:
           dockerfile: ${{ matrix.image }}/Dockerfile
