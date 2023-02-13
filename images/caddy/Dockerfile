@@ -1,4 +1,4 @@
-FROM caddy:2.6.2-alpine
+FROM caddy:2.6.3-alpine
 
 COPY Caddyfile /etc/caddy/Caddyfile
 COPY entrypoint.sh /
