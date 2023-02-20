@@ -38,7 +38,7 @@ jobs:
           package-name: vault_borg
           personal-account: true
 
-      - uses: snok/container-retention-policy@v1
+      - uses: snok/container-retention-policy@v2
         with:
           image-names: vault_borg, vault_caddy
           cut-off: 1 day ago UTC
